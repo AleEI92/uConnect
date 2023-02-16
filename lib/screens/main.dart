@@ -7,10 +7,14 @@ void main() {
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.cyan,
+        ),
         fontFamily: 'Inter',
-        scaffoldBackgroundColor: Colors.cyan,
+        //scaffoldBackgroundColor: const Color(0xE6FFFFFF),
+        scaffoldBackgroundColor: Colors.grey,
       ),
-      home: MyApp()));
+      home: const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -19,7 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Timer(
-        const Duration(seconds: 2),
+        const Duration(seconds: 1),
         () => Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (BuildContext context) => const Login())));
 
@@ -28,14 +32,27 @@ class MyApp extends StatelessWidget {
           return Scaffold(
             body: SafeArea(
               child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topRight,
+                      end: Alignment.bottomLeft,
+                      stops: const [0.2, 0.5, 0.8, 0.7],
+                      colors: [
+                        Colors.blue[50]!,
+                        Colors.blue[100]!,
+                        Colors.blue[200]!,
+                        Colors.blue[300]!
+                      ]
+                  ),
+                ),
                 width: double.maxFinite,
                 height: double.maxFinite,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.all(12),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: const [
+                  children: [
                     Image(
                       image: AssetImage('assets/images/logo.png'),
                       width: 160,
