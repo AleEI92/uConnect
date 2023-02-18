@@ -1,6 +1,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/screens/register.dart';
+import '../custom_widgets/background_decor.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
@@ -21,19 +22,7 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              stops: const [0.2, 0.5, 0.8, 0.7],
-                colors: [
-                  Colors.blue[50]!,
-                  Colors.blue[100]!,
-                  Colors.blue[200]!,
-                  Colors.blue[300]!
-                ]
-            ),
-          ),
+          decoration: myAppBackground(),
           alignment: Alignment.center,
           width: double.maxFinite,
           height: double.maxFinite,
@@ -157,10 +146,7 @@ class _LoginState extends State<Login> {
                                   //}
                                 },
                               ),
-                              const SizedBox(
-                                height: 8.0,
-                              ),
-                              InkWell(
+                              TextButton(
                                 child: const Text(
                                   '¿Ha olvidado su contraseña?',
                                   style: TextStyle(
@@ -170,12 +156,12 @@ class _LoginState extends State<Login> {
                                     color: Colors.black,
                                   ),
                                 ),
-                                onTap: () {
+                                onPressed: () {
 
                                 },
                               ),
                               const SizedBox(
-                                height: 32.0,
+                                height: 24.0,
                               ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -187,11 +173,8 @@ class _LoginState extends State<Login> {
                                       fontSize: 14,
                                     ),
                                   ),
-                                  const SizedBox(
-                                    width: 4.0,
-                                  ),
-                                  InkWell(
-                                    onTap: () {
+                                  TextButton(
+                                    onPressed: () {
                                       print('PRINT LOG: Register Clicked!');
                                       Navigator.of(context).push(
                                           MaterialPageRoute(

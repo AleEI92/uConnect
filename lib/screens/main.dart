@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:u_connect/screens/login.dart';
+import '../custom_widgets/background_decor.dart';
 
 void main() {
   runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.cyan,
+          backgroundColor: Color(0xFF64B5F6),
         ),
         fontFamily: 'Inter',
-        //scaffoldBackgroundColor: const Color(0xE6FFFFFF),
-        scaffoldBackgroundColor: Colors.grey,
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: const MyApp()));
 }
@@ -32,19 +32,7 @@ class MyApp extends StatelessWidget {
           return Scaffold(
             body: SafeArea(
               child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      stops: const [0.2, 0.5, 0.8, 0.7],
-                      colors: [
-                        Colors.blue[50]!,
-                        Colors.blue[100]!,
-                        Colors.blue[200]!,
-                        Colors.blue[300]!
-                      ]
-                  ),
-                ),
+                decoration: myAppBackground(),
                 width: double.maxFinite,
                 height: double.maxFinite,
                 alignment: Alignment.center,

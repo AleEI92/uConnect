@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:u_connect/screens/login.dart';
-import 'package:u_connect/screens/main.dart';
+import '../custom_widgets/background_decor.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -40,19 +40,7 @@ class _HomeState extends State<Home> {
         ),
         body: SafeArea(
           child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                  stops: const [0.2, 0.5, 0.8, 0.7],
-                  colors: [
-                    Colors.blue[50]!,
-                    Colors.blue[100]!,
-                    Colors.blue[200]!,
-                    Colors.blue[300]!
-                  ]
-              ),
-            ),
+            decoration: myAppBackground(),
             width: double.maxFinite,
             height: double.maxFinite,
             constraints: const BoxConstraints.expand(),
@@ -74,11 +62,12 @@ class _HomeState extends State<Home> {
         title: const Text('¿Desea cerrar sesión?'),
         actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(false), //<-- SEE HERE
+            onPressed: () => Navigator.of(context).pop(false),
             child: const Text('NO'),
           ),
           TextButton(
             onPressed: () => {
+              Navigator.of(context).pop(false),
               Navigator.of(context).pushReplacement(
                   MaterialPageRoute(
                       builder: (BuildContext context) =>

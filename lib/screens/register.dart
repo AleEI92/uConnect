@@ -1,5 +1,10 @@
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:u_connect/http/base_client.dart';
+import '../custom_widgets/background_decor.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -23,15 +28,17 @@ class _RegisterState extends State<Register> {
   var _passConfirmHide = true;
   var _selectedCarrera = '';
   var _selectedShadowButton = true;
+  late Future<dynamic> data;
   /////////////////////////////////
 
-  // ARRAY STRING TEMPORAL DE CARRERAS
-  final List<String> _allCarreras = [
-    'Ing. Informatica',
-    'Ing. Industrial',
-    'Arquitectura',
-    'Ing. Ambiental'
-  ];
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    data = getCarreras();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -40,120 +47,165 @@ class _RegisterState extends State<Register> {
         title: const Text('Registro'),
       ),
       body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                stops: const [0.2, 0.5, 0.8, 0.7],
-                colors: [
-                  Colors.blue[50]!,
-                  Colors.blue[100]!,
-                  Colors.blue[200]!,
-                  Colors.blue[300]!
-                ]
-            ),
-          ),
-          width: double.maxFinite,
-          height: double.maxFinite,
-          constraints: const BoxConstraints.expand(),
-          child: Column(
-            children: [
-              Container(
-                height: 65,
+        child: FutureBuilder<dynamic>(
+          future: data,
+          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+            if (snapshot.hasError) {
+              // LOGICA DE ERROR DE SERVICIO
+              return CupertinoAlertDialog(
+                title: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_rounded,
+                      color: Colors.red,
+                      size: 28,
+                    ),
+                    SizedBox(
+                      width: 4,
+                    ),
+                    Text(
+                      'Oops...',
+                      style: TextStyle(
+                        fontSize: 20,
+                      ),
+                    ),
+                  ],
+                ),
+                content: const Column(
+                  children: [
+                    SizedBox(
+                      height: 8,
+                    ),
+                    Text(
+                      'Algo ha fallado. Por favor inténtelo de nuevo.',
+                      style: TextStyle(
+                        fontSize: 14,
+                      ),),
+                  ],
+                ),
+                actions: [
+                  CupertinoDialogAction(
+                    isDestructiveAction: true,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Aceptar'),
+                  ),
+                ],
+              );
+            }
+            else if (snapshot.hasData) {
+              return Container(
+                decoration: myAppBackground(),
                 width: double.maxFinite,
+                height: double.maxFinite,
+                constraints: const BoxConstraints.expand(),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 60,
+                      width: double.maxFinite,
+                      color: Colors.blue[300],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  shadowColor: _selectedShadowButton
+                                      ? MaterialStateProperty.all(
+                                      Colors.cyan[50])
+                                      : MaterialStateProperty.all(Colors.black),
+                                  minimumSize: MaterialStateProperty.all(
+                                      const Size(0, 45)),
+                                  backgroundColor:
+                                  MaterialStateProperty.all(Colors.white10),
+                                ),
+                                child: const Text(
+                                  'ESTUDIANTE',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  if (!_isStudentForm) {
+                                    setState(() {
+                                      _isStudentForm = true;
+                                      _selectedShadowButton = true;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                            const SizedBox(
+                              width: 12.0,
+                            ),
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ButtonStyle(
+                                  shadowColor: !_selectedShadowButton
+                                      ? MaterialStateProperty.all(
+                                      Colors.cyan[50])
+                                      : MaterialStateProperty.all(Colors.black),
+                                  minimumSize: MaterialStateProperty.all(
+                                      const Size(0, 45)),
+                                  backgroundColor:
+                                  MaterialStateProperty.all(Colors.white10),
+                                ),
+                                child: const Text(
+                                  'EMPRESA',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  if (_isStudentForm) {
+                                    setState(() {
+                                      _isStudentForm = false;
+                                      _selectedShadowButton = false;
+                                    });
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 8),
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: _isStudentForm ? studentForm(snapshot.data as List<String>) : companyForm(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            // SE MUESTRA PROGRESO
+            else {
+              return const SpinKitRipple(
                 color: Colors.cyan,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            shadowColor:
-                            _selectedShadowButton
-                                ? MaterialStateProperty.all(Colors.cyan[50])
-                                : MaterialStateProperty.all(Colors.black),
-                            minimumSize:
-                                MaterialStateProperty.all(const Size(0, 45)),
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.white10),
-                          ),
-                          child: const Text(
-                            'ESTUDIANTE',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          onPressed: () {
-                            if (!_isStudentForm) {
-                              setState(() {
-                                _isStudentForm = true;
-                                _selectedShadowButton = true;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(
-                        width: 12.0,
-                      ),
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ButtonStyle(
-                            shadowColor:
-                            !_selectedShadowButton
-                                ? MaterialStateProperty.all(Colors.cyan[50])
-                                : MaterialStateProperty.all(Colors.black),
-                            minimumSize:
-                                MaterialStateProperty.all(const Size(0, 45)),
-                            backgroundColor:
-                                MaterialStateProperty.all(Colors.white10),
-                          ),
-                          child: const Text(
-                            'EMPRESA',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          onPressed: () {
-                            if (_isStudentForm) {
-                              setState(() {
-                                _isStudentForm = false;
-                                _selectedShadowButton = false;
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: _isStudentForm
-                        ? studentForm()
-                        : companyForm(),
-                  ),
-                ),
-              ),
-            ],
-          ),
+                size: 80.0,
+              );
+            }
+          },
         ),
       ),
     );
   }
 
-  Widget studentForm() {
+  Widget studentForm(List<String> carreras) {
     return Form(
       key: _studentFormKey,
       child: Card(
@@ -233,7 +285,7 @@ class _RegisterState extends State<Register> {
               const SizedBox(
                 height: 20.0,
               ),
-              DropdownButtonFormField(
+              DropdownButtonFormField<String>(
                 validator: (value) {
                   if (_selectedCarrera.isEmpty) {
                     return ('Debe seleccionar una carrera.');
@@ -241,8 +293,8 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
                 icon: const Icon(Icons.keyboard_arrow_down),
-                items: _allCarreras.map((name) {
-                  return DropdownMenuItem(
+                items: carreras.map((name) {
+                  return DropdownMenuItem<String>(
                     value: name,
                     child: Text(name),
                   );
@@ -252,7 +304,7 @@ class _RegisterState extends State<Register> {
                     hintText: 'Seleccione su carrera:'),
                 onChanged: (value) {
                   setState(() {
-                    _selectedCarrera = value!;
+                    _selectedCarrera = value.toString();
                   });
                 },
               ),
@@ -527,5 +579,10 @@ class _RegisterState extends State<Register> {
       return 'Ingrese un correo válido.';
     }
     return null;
+  }
+
+  Future<dynamic> getCarreras() async {
+    var response = await MyBaseClient().getCarreras();
+    return response;
   }
 }
