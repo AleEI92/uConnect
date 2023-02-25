@@ -1,7 +1,10 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/models/login_body.dart';
+import 'package:u_connect/screens/password_reset.dart';
 import 'package:u_connect/screens/register.dart';
 import '../custom_widgets/background_decor.dart';
+import '../http/base_client.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
@@ -15,6 +18,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
   final _loginFormKey = GlobalKey<FormState>();
+  final mailControl = TextEditingController();
+  final passControl = TextEditingController();
   bool rememberMe = false;
 
   @override
@@ -51,6 +56,7 @@ class _LoginState extends State<Login> {
                             children: [
                               // USER MAIL
                               TextFormField(
+                                controller: mailControl,
                                 validator: (value) {
                                   if (value == null || !EmailValidator.validate(value)) {
                                     return 'Ingrese un correo válido.';
@@ -73,6 +79,7 @@ class _LoginState extends State<Login> {
                               ),
                               // USER PASSWORD
                               TextFormField(
+                                controller: passControl,
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
                                     return 'Ingrese su contraseña.';
@@ -134,16 +141,23 @@ class _LoginState extends State<Login> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                onPressed: () => {
-                                  /*if (!_loginFormKey.currentState!.validate()) {
-
-                                  }*/
-                                  //else {
-                                    Navigator.of(context).pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (BuildContext context) =>
-                                                const Home()))
-                                  //}
+                                onPressed: () async {
+                                  if (_loginFormKey.currentState!.validate()) {
+                                    var loginBody = {
+                                      "username": mailControl.text.toString().trim(),
+                                      "password": passControl.text.toString().trim()
+                                    };
+                                    await MyBaseClient()
+                                        .postLogin(loginBody)
+                                        .then((value) => {
+                                              Navigator.of(context)
+                                                  .pushReplacement(
+                                                      MaterialPageRoute(
+                                                          builder: (BuildContext
+                                                                  context) =>
+                                                              const Home()))
+                                            });
+                                  }
                                 },
                               ),
                               TextButton(
@@ -157,7 +171,7 @@ class _LoginState extends State<Login> {
                                   ),
                                 ),
                                 onPressed: () {
-
+                                  _recoverPassword();
                                 },
                               ),
                               const SizedBox(
@@ -204,5 +218,13 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  Future<bool> _recoverPassword() async {
+    return await showDialog(
+      context: context,
+      builder: (context) => PasswordReset(),
+    ) ??
+        false;
   }
 }

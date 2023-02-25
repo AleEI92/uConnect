@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:u_connect/screens/login.dart';
+import '../custom_widgets/my_dialog.dart';
 import '../custom_widgets/background_decor.dart';
 
 class Home extends StatefulWidget {
@@ -56,28 +57,36 @@ class _HomeState extends State<Home> {
   }
 
   Future<bool> _onBackPressed() async {
-    return (await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('¿Desea cerrar sesión?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('NO'),
+    return await showDialog(
+          context: context,
+          builder: (context) => MyAlertDialog(
+            showNoButton: true,
+            icon: Icons.warning_rounded,
+            iconColor: Colors.yellow[700]!,
+            title: '¿Desea cerrar sesión?',
+            description: '',
+            yesBtnText: 'SI',
+            noBtnText: 'NO',
+            yesFunction: closeSession,
+            noFunction: closeDialog
           ),
-          TextButton(
-            onPressed: () => {
-              Navigator.of(context).pop(false),
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                      builder: (BuildContext context) =>
-                      const Login()))
-            },
-            child: const Text('SI'),
-          ),
-        ],
-      ),
-    )) ??
+        ) ??
         false;
+  }
+
+  Function closeSession() {
+    return () {
+      Navigator.of(context).pop(false);
+      Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+              builder: (BuildContext context) =>
+              const Login()));
+    };
+  }
+
+  Function closeDialog() {
+    return () {
+      Navigator.of(context).pop(false);
+    };
   }
 }

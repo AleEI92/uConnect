@@ -1,10 +1,16 @@
 
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:u_connect/http/base_client.dart';
+import 'package:u_connect/models/carreras_response.dart';
+import 'package:u_connect/models/generic_post_ok.dart';
+import 'package:u_connect/models/registro_user.dart';
 import '../custom_widgets/background_decor.dart';
+import '../custom_widgets/my_dialog.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -20,7 +26,15 @@ class _RegisterState extends State<Register> {
 
   // KEYS PARA LOS FORMULARIOS
   final _studentFormKey = GlobalKey<FormState>();
+  final studentMailControl = TextEditingController();
+  final studentNameControl = TextEditingController();
+  final studentPassControl = TextEditingController();
+  final studentPhoneControl = TextEditingController();
+
   final _companyFormKey = GlobalKey<FormState>();
+  final companyMailControl = TextEditingController();
+  final companyNameControl = TextEditingController();
+  final companyPassControl = TextEditingController();
   ////////////////////////////
   // VALORES PARA CAMBIOS DE ESTADO
   var _isStudentForm = true;
@@ -33,9 +47,7 @@ class _RegisterState extends State<Register> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
     data = getCarreras();
   }
 
@@ -51,148 +63,14 @@ class _RegisterState extends State<Register> {
           future: data,
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.hasError) {
-              // LOGICA DE ERROR DE SERVICIO
-              return CupertinoAlertDialog(
-                title: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_rounded,
-                      color: Colors.red,
-                      size: 28,
-                    ),
-                    SizedBox(
-                      width: 4,
-                    ),
-                    Text(
-                      'Oops...',
-                      style: TextStyle(
-                        fontSize: 20,
-                      ),
-                    ),
-                  ],
-                ),
-                content: const Column(
-                  children: [
-                    SizedBox(
-                      height: 8,
-                    ),
-                    Text(
-                      'Algo ha fallado. Por favor inténtelo de nuevo.',
-                      style: TextStyle(
-                        fontSize: 14,
-                      ),),
-                  ],
-                ),
-                actions: [
-                  CupertinoDialogAction(
-                    isDestructiveAction: true,
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Aceptar'),
-                  ),
-                ],
-              );
+              // ERROR EN SERVICIO DE CARRERAS
+              return errorDialog();
             }
             else if (snapshot.hasData) {
-              return Container(
-                decoration: myAppBackground(),
-                width: double.maxFinite,
-                height: double.maxFinite,
-                constraints: const BoxConstraints.expand(),
-                child: Column(
-                  children: [
-                    Container(
-                      height: 60,
-                      width: double.maxFinite,
-                      color: Colors.blue[300],
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ButtonStyle(
-                                  shadowColor: _selectedShadowButton
-                                      ? MaterialStateProperty.all(
-                                      Colors.cyan[50])
-                                      : MaterialStateProperty.all(Colors.black),
-                                  minimumSize: MaterialStateProperty.all(
-                                      const Size(0, 45)),
-                                  backgroundColor:
-                                  MaterialStateProperty.all(Colors.white10),
-                                ),
-                                child: const Text(
-                                  'ESTUDIANTE',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  if (!_isStudentForm) {
-                                    setState(() {
-                                      _isStudentForm = true;
-                                      _selectedShadowButton = true;
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
-                            const SizedBox(
-                              width: 12.0,
-                            ),
-                            Expanded(
-                              child: ElevatedButton(
-                                style: ButtonStyle(
-                                  shadowColor: !_selectedShadowButton
-                                      ? MaterialStateProperty.all(
-                                      Colors.cyan[50])
-                                      : MaterialStateProperty.all(Colors.black),
-                                  minimumSize: MaterialStateProperty.all(
-                                      const Size(0, 45)),
-                                  backgroundColor:
-                                  MaterialStateProperty.all(Colors.white10),
-                                ),
-                                child: const Text(
-                                  'EMPRESA',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                onPressed: () {
-                                  if (_isStudentForm) {
-                                    setState(() {
-                                      _isStudentForm = false;
-                                      _selectedShadowButton = false;
-                                    });
-                                  }
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0, vertical: 8),
-                        child: SingleChildScrollView(
-                          physics: const BouncingScrollPhysics(),
-                          child: _isStudentForm ? studentForm(snapshot.data as List<String>) : companyForm(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
+              // MOSTRAMOS FORMULARIOS
+              return showForms(snapshot);
             }
-            // SE MUESTRA PROGRESO
+            // PROGRESO DE CARGA DE SERVICIO
             else {
               return const SpinKitRipple(
                 color: Colors.cyan,
@@ -205,7 +83,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget studentForm(List<String> carreras) {
+  Widget studentForm(List<Carreras> carreras) {
     return Form(
       key: _studentFormKey,
       child: Card(
@@ -222,6 +100,7 @@ class _RegisterState extends State<Register> {
             children: [
               // FULL NAME
               TextFormField(
+                controller: studentNameControl,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un nombre para el registro.';
@@ -241,6 +120,7 @@ class _RegisterState extends State<Register> {
               ),
               // USER EMAIL
               TextFormField(
+                controller: studentMailControl,
                 validator: (value) {
                   return mailValidation(value);
                 },
@@ -257,6 +137,7 @@ class _RegisterState extends State<Register> {
               ),
               // USER PHONE NUMBER
               TextFormField(
+                controller: studentPhoneControl,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un número de celular.';
@@ -280,7 +161,7 @@ class _RegisterState extends State<Register> {
                     prefixIcon: Icon(Icons.phone_android_rounded),
                     border: OutlineInputBorder(),
                     labelText: 'Celular',
-                    hintText: 'Ingrese su nro de celular'),
+                    hintText: 'Ingrese su número de celular'),
               ),
               const SizedBox(
                 height: 20.0,
@@ -293,10 +174,10 @@ class _RegisterState extends State<Register> {
                   return null;
                 },
                 icon: const Icon(Icons.keyboard_arrow_down),
-                items: carreras.map((name) {
+                items: carreras.map((carrera) {
                   return DropdownMenuItem<String>(
-                    value: name,
-                    child: Text(name),
+                    value: carrera.name,
+                    child: Text(carrera.name),
                   );
                 }).toList(),
                 decoration: const InputDecoration(
@@ -313,6 +194,7 @@ class _RegisterState extends State<Register> {
               ),
               // USER PASSWORD
               TextFormField(
+                controller: studentPassControl,
                 validator: (value) {
                   return passwordValidation(value);
                 },
@@ -387,11 +269,27 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 onPressed: () => {
-                  if (!_studentFormKey.currentState!.validate()) {
-
-                  }
-                  else {
-
+                  if (_studentFormKey.currentState!.validate()) {
+                    callRegisterFunction().then((value) => {
+                      if (value.message == "OK") {
+                        /*showDialog(
+                          context: context,
+                          builder: (context) => MyAlertDialog(
+                              showNoButton: false,
+                              icon: Icons.verified_rounded,
+                              iconColor: Colors.green,
+                              title: 'Registro exitoso!',
+                              description:
+                                  'Se ha registrado correctamente. Ya puede iniciar sesion 😁.',
+                              yesBtnText: 'ACEPTAR',
+                              noBtnText: null,
+                              yesFunction: () {
+                                Navigator.of(context).pop(false);
+                              },
+                              noFunction: null),
+                        )*/
+                      }
+                    })
                   }
                 },
               ),
@@ -543,11 +441,8 @@ class _RegisterState extends State<Register> {
                   ),
                 ),
                 onPressed: () => {
-                  if (!_companyFormKey.currentState!.validate()) {
-
-                  }
-                  else {
-
+                  if (_companyFormKey.currentState!.validate()) {
+                    //callRegisterFunction()
                   }
                 },
               ),
@@ -555,6 +450,149 @@ class _RegisterState extends State<Register> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget showForms(AsyncSnapshot<dynamic> snapshot) {
+    return Container(
+      decoration: myAppBackground(),
+      width: double.maxFinite,
+      height: double.maxFinite,
+      constraints: const BoxConstraints.expand(),
+      child: Column(
+        children: [
+          Container(
+            height: 60,
+            width: double.maxFinite,
+            color: Colors.blue[300],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        shadowColor: _selectedShadowButton
+                            ? MaterialStateProperty.all(
+                            Colors.cyan[50])
+                            : MaterialStateProperty.all(Colors.black),
+                        minimumSize: MaterialStateProperty.all(
+                            const Size(0, 45)),
+                        backgroundColor:
+                        MaterialStateProperty.all(Colors.white10),
+                      ),
+                      child: const Text(
+                        'ESTUDIANTE',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onPressed: () {
+                        if (!_isStudentForm) {
+                          setState(() {
+                            _isStudentForm = true;
+                            _selectedShadowButton = true;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 12.0,
+                  ),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ButtonStyle(
+                        shadowColor: !_selectedShadowButton
+                            ? MaterialStateProperty.all(
+                            Colors.cyan[50])
+                            : MaterialStateProperty.all(Colors.black),
+                        minimumSize: MaterialStateProperty.all(
+                            const Size(0, 45)),
+                        backgroundColor:
+                        MaterialStateProperty.all(Colors.white10),
+                      ),
+                      child: const Text(
+                        'EMPRESA',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onPressed: () {
+                        if (_isStudentForm) {
+                          setState(() {
+                            _isStudentForm = false;
+                            _selectedShadowButton = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 8),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: _isStudentForm ? studentForm(snapshot.data as List<Carreras>) : companyForm(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget errorDialog() {
+    return CupertinoAlertDialog(
+      title: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_rounded,
+            color: Colors.red,
+            size: 28,
+          ),
+          SizedBox(
+            width: 4,
+          ),
+          Text(
+            'Oops...',
+            style: TextStyle(
+              fontSize: 20,
+            ),
+          ),
+        ],
+      ),
+      content: const Column(
+        children: [
+          SizedBox(
+            height: 8,
+          ),
+          Text(
+            'Algo ha fallado. Por favor inténtelo de nuevo.',
+            style: TextStyle(
+              fontSize: 14,
+            ),),
+        ],
+      ),
+      actions: [
+        CupertinoDialogAction(
+          isDestructiveAction: true,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('Aceptar'),
+        ),
+      ],
     );
   }
 
@@ -581,8 +619,25 @@ class _RegisterState extends State<Register> {
     return null;
   }
 
+  Future<GenericOkPost> callRegisterFunction() async {
+    var body = RegistroUser(
+        email: studentMailControl.value.text,
+        fullName: studentNameControl.value.text,
+        phoneNumber: studentPhoneControl.value.text,
+        password: studentPassControl.value.text,
+        career: _selectedCarrera);
+
+    return await postRegistrar(registroUserToJson(body));
+  }
+
+  // SERVICIOS A EJECUTAR EN PANTALLA
   Future<dynamic> getCarreras() async {
     var response = await MyBaseClient().getCarreras();
+    return response;
+  }
+
+  Future<GenericOkPost> postRegistrar(Object body) async {
+    var response = await MyBaseClient().postRegistrar(body);
     return response;
   }
 }
