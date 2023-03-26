@@ -1,16 +1,15 @@
 
-import 'dart:convert';
+import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:u_connect/http/base_client.dart';
+import 'package:u_connect/http/services.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
 import 'package:u_connect/models/registro_user.dart';
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
-import '../custom_widgets/my_dialog.dart';
 
 class Register extends StatefulWidget {
   const Register({Key? key}) : super(key: key);
@@ -23,6 +22,7 @@ class _RegisterState extends State<Register> {
   final int minPassInput = 8;
   final int maxPassInput = 12;
   String password = '';
+  var _isLoading = true;
 
   // KEYS PARA LOS FORMULARIOS
   final _studentFormKey = GlobalKey<FormState>();
@@ -48,6 +48,9 @@ class _RegisterState extends State<Register> {
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration.zero,() {
+      Utils(context).startLoading();
+    });
     data = getCarreras();
   }
 
@@ -62,20 +65,25 @@ class _RegisterState extends State<Register> {
         child: FutureBuilder<dynamic>(
           future: data,
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.hasError) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (_isLoading) {
+                Utils(context).stopLoading();
+                _isLoading = false;
+              }
               // ERROR EN SERVICIO DE CARRERAS
-              return errorDialog();
-            }
-            else if (snapshot.hasData) {
+              if (snapshot.hasError) {
+                return myDialog();
+              }
               // MOSTRAMOS FORMULARIOS
-              return showForms(snapshot);
+              else if (snapshot.hasData) {
+                return showForms(snapshot, context);
+              }
+              else {
+                return Container();
+              }
             }
-            // PROGRESO DE CARGA DE SERVICIO
             else {
-              return const SpinKitRipple(
-                color: Colors.cyan,
-                size: 80.0,
-              );
+              return Container();
             }
           },
         ),
@@ -83,7 +91,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget studentForm(List<Carreras> carreras) {
+  Widget studentForm(List<Carreras> carreras, BuildContext context) {
     return Form(
       key: _studentFormKey,
       child: Card(
@@ -268,28 +276,33 @@ class _RegisterState extends State<Register> {
                     color: Colors.white,
                   ),
                 ),
-                onPressed: () => {
+                onPressed: () async {
                   if (_studentFormKey.currentState!.validate()) {
-                    callRegisterFunction().then((value) => {
+                    Utils(context).startLoading();
+                    callRegisterFunction().then((value) {
+                      Utils(context).stopLoading();
                       if (value.message == "OK") {
-                        /*showDialog(
-                          context: context,
-                          builder: (context) => MyAlertDialog(
-                              showNoButton: false,
-                              icon: Icons.verified_rounded,
-                              iconColor: Colors.green,
-                              title: 'Registro exitoso!',
-                              description:
-                                  'Se ha registrado correctamente. Ya puede iniciar sesion 😁.',
-                              yesBtnText: 'ACEPTAR',
-                              noBtnText: null,
-                              yesFunction: () {
-                                Navigator.of(context).pop(false);
-                              },
-                              noFunction: null),
-                        )*/
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Registro exitoso!',
+                            desc:
+                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: 'ACEPTAR',
+                            btnOkOnPress: () {
+                              Navigator.of(context).pop(true);
+                            }).show();
                       }
-                    })
+                    }).onError((error, stackTrace) {
+                      Utils(context).stopLoading();
+                    });
                   }
                 },
               ),
@@ -453,7 +466,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget showForms(AsyncSnapshot<dynamic> snapshot) {
+  Widget showForms(AsyncSnapshot<dynamic> snapshot, BuildContext context) {
     return Container(
       decoration: myAppBackground(),
       width: double.maxFinite,
@@ -542,7 +555,7 @@ class _RegisterState extends State<Register> {
                   horizontal: 8.0, vertical: 8),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: _isStudentForm ? studentForm(snapshot.data as List<Carreras>) : companyForm(),
+                child: _isStudentForm ? studentForm(snapshot.data as List<Carreras>, context) : companyForm(),
               ),
             ),
           ),
@@ -551,48 +564,94 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget errorDialog() {
-    return CupertinoAlertDialog(
-      title: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_rounded,
-            color: Colors.red,
-            size: 28,
-          ),
-          SizedBox(
-            width: 4,
-          ),
-          Text(
-            'Oops...',
-            style: TextStyle(
-              fontSize: 20,
-            ),
-          ),
-        ],
+  Widget myDialog() {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)
       ),
-      content: const Column(
-        children: [
-          SizedBox(
-            height: 8,
-          ),
-          Text(
-            'Algo ha fallado. Por favor inténtelo de nuevo.',
-            style: TextStyle(
-              fontSize: 14,
-            ),),
-        ],
-      ),
-      actions: [
-        CupertinoDialogAction(
-          isDestructiveAction: true,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          child: const Text('Aceptar'),
+      elevation: 8,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: MediaQuery.of(context).size.width *(2/3),
+        decoration: BoxDecoration(
+          color: Colors.cyan[300],
+          shape: BoxShape.rectangle,
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
         ),
-      ],
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Icon(
+                  Icons.error_rounded,
+                  color: Colors.red,
+                  size: 60,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              // TITULO
+              child: Text(
+                'Oops.. Ha ocurrido un error.',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              // DESCRIPCION
+              child: Text(
+                'Intente de nuevo por favor.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // BOTON SI
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    style: const ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(Colors.white),
+                    ),
+                    child: const Text(
+                      'ACEPTAR',
+                      style: TextStyle(
+                        color: Colors.cyan,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    )),
+              ],
+            ),
+            const SizedBox(
+              height: 18,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -632,7 +691,9 @@ class _RegisterState extends State<Register> {
 
   // SERVICIOS A EJECUTAR EN PANTALLA
   Future<dynamic> getCarreras() async {
-    var response = await MyBaseClient().getCarreras();
+    //var response = await MyBaseClient().getCarreras();
+    var listCarreras = [Carreras(name: 'Ambiental', id: 1), Carreras(name: 'Electronica', id: 2)];
+    var response = listCarreras;
     return response;
   }
 

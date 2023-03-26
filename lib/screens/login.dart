@@ -1,10 +1,13 @@
+
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:u_connect/models/login_body.dart';
 import 'package:u_connect/screens/password_reset.dart';
 import 'package:u_connect/screens/register.dart';
+import '../common/constants.dart';
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
-import '../http/base_client.dart';
+import '../http/services.dart';
+import '../models/http_error.dart';
 import 'home.dart';
 
 class Login extends StatefulWidget {
@@ -143,20 +146,25 @@ class _LoginState extends State<Login> {
                                 ),
                                 onPressed: () async {
                                   if (_loginFormKey.currentState!.validate()) {
+                                    Utils(context).startLoading();
                                     var loginBody = {
-                                      "username": mailControl.text.toString().trim(),
-                                      "password": passControl.text.toString().trim()
+                                      "username":
+                                          mailControl.text.toString().trim(),
+                                      "password":
+                                          passControl.text.toString().trim()
                                     };
                                     await MyBaseClient()
                                         .postLogin(loginBody)
-                                        .then((value) => {
-                                              Navigator.of(context)
-                                                  .pushReplacement(
-                                                      MaterialPageRoute(
-                                                          builder: (BuildContext
-                                                                  context) =>
-                                                              const Home()))
-                                            });
+                                        .onError((error, stackTrace) {
+                                      Utils(context).stopLoading();
+                                      Utils(context).showErrorDialog(error.toString());
+                                    }).then((value) {
+                                      /*Utils(context).stopLoading();
+                                      Navigator.of(context).pushReplacement(
+                                          MaterialPageRoute(
+                                              builder: (BuildContext context) =>
+                                                  const Home()));*/
+                                    });
                                   }
                                 },
                               ),
@@ -189,7 +197,6 @@ class _LoginState extends State<Login> {
                                   ),
                                   TextButton(
                                     onPressed: () {
-                                      print('PRINT LOG: Register Clicked!');
                                       Navigator.of(context).push(
                                           MaterialPageRoute(
                                               builder: (BuildContext context) =>
@@ -222,6 +229,7 @@ class _LoginState extends State<Login> {
 
   Future<bool> _recoverPassword() async {
     return await showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (context) => PasswordReset(),
     ) ??

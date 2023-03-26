@@ -1,12 +1,21 @@
 
+
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/common/constants.dart';
+import 'package:u_connect/models/recover_pass_body.dart';
+import '../common/utils.dart';
+import '../http/services.dart';
 
+//ignore: must_be_immutable
 class PasswordReset extends StatelessWidget {
   PasswordReset({Key? key}) : super(key: key);
 
   // KEYS PARA LOS FORMULARIOS
   final _formKey = GlobalKey<FormState>();
+  dynamic _mail;
+  late BuildContext myCtx;
 
   @override
   Widget build(BuildContext context) {
@@ -43,10 +52,11 @@ class PasswordReset extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
-                      'Le enviaremos una contraseña temporal a su correo para que pueda cambiarla en su siguiente inicio de sesion.',
+                      'Ingrese el correo que utilizó para registrarse.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
 
                       ),
                     ),
@@ -81,9 +91,32 @@ class PasswordReset extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
-                    onPressed: () => {
+                    onPressed: () {
                       if (_formKey.currentState!.validate()) {
-
+                        Utils(context).startLoading();
+                        myCtx = context;
+                        callRecoverPassword().then((value) {
+                          Utils(context).stopLoading();
+                          AwesomeDialog(
+                              context: context,
+                              dismissOnTouchOutside: false,
+                              dismissOnBackKeyPress: false,
+                              dialogType: DialogType.success,
+                              headerAnimationLoop: false,
+                              animType: AnimType.bottomSlide,
+                              title: '¡Solicitud exitosa!',
+                              desc:
+                                  'Se ha enviado una contraseña de acceso único a su correo.',
+                              buttonsTextStyle:
+                                  const TextStyle(color: Colors.black),
+                              showCloseIcon: false,
+                              btnOkText: 'ACEPTAR',
+                              btnOkColor: Colors.cyan,
+                              btnOkOnPress: Utils(context).popDialog).show();
+                        }).onError((error, stackTrace) {
+                          Utils(context).stopLoading();
+                          Utils(context).showErrorDialog(Constants.disculpe).show();
+                        });
                       }
                     },
                   ),
@@ -99,8 +132,19 @@ class PasswordReset extends StatelessWidget {
 
   String? mailValidation(String? value) {
     if (value == null || !EmailValidator.validate(value)) {
+      _mail = null;
       return 'Ingrese un correo válido.';
     }
+    _mail = value.trim();
     return null;
   }
+
+  Future<String> callRecoverPassword() async {
+    var body = RecoverPasswordBody(
+        email: _mail);
+
+    var response = await MyBaseClient().postRecuperarPassword(recoverPasswordBodyToJson(body));
+    return response;
+  }
+
 }

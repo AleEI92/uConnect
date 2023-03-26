@@ -1,7 +1,8 @@
+
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:u_connect/screens/login.dart';
-import '../custom_widgets/my_dialog.dart';
 import '../custom_widgets/background_decor.dart';
+import 'login.dart';
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -14,7 +15,7 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: _onBackPressed,
+      onWillPop: () => _onBackPressed(context),
       child: Scaffold(
         appBar: AppBar(
           title: const Text('uConnect'),
@@ -34,7 +35,7 @@ class _HomeState extends State<Home> {
                 color: Colors.white,
               ),
               onPressed: () {
-                // do something
+                _onBackPressed(context);
               },
             )
           ],
@@ -45,7 +46,7 @@ class _HomeState extends State<Home> {
             width: double.maxFinite,
             height: double.maxFinite,
             constraints: const BoxConstraints.expand(),
-            child: Column(
+            child: const Column(
               children: [
 
               ],
@@ -56,37 +57,42 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<bool> _onBackPressed() async {
-    return await showDialog(
-          context: context,
-          builder: (context) => MyAlertDialog(
-            showNoButton: true,
-            icon: Icons.warning_rounded,
-            iconColor: Colors.yellow[700]!,
-            title: '¿Desea cerrar sesión?',
-            description: '',
-            yesBtnText: 'SI',
-            noBtnText: 'NO',
-            yesFunction: closeSession,
-            noFunction: closeDialog
-          ),
-        ) ??
-        false;
+  Future<bool> _onBackPressed(BuildContext context) async {
+    await AwesomeDialog(
+        context: context,
+        autoDismiss: false,
+        dismissOnBackKeyPress: false,
+        onDismissCallback: (type) {},
+        useRootNavigator: false,
+        dialogType: DialogType.info,
+        animType: AnimType.rightSlide,
+        dismissOnTouchOutside: false,
+        title: '¿Desea cerrar sesión?',
+        desc: '',
+        buttonsTextStyle: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+        btnOkText: 'SI',
+        btnOkColor: Colors.cyan[400],
+        btnCancelText: 'NO',
+        btnCancelColor: Colors.grey[400],
+        btnOkOnPress: () {
+          Navigator.of(context).pop();
+          closeSession();
+        },
+        btnCancelOnPress: () => Navigator.of(context).pop()).show();
+
+    return false;
   }
 
-  Function closeSession() {
-    return () {
-      Navigator.of(context).pop(false);
-      Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-              builder: (BuildContext context) =>
-              const Login()));
-    };
-  }
-
-  Function closeDialog() {
-    return () {
-      Navigator.of(context).pop(false);
-    };
+  void closeSession() {
+    Navigator.of(context)
+        .pushReplacement(
+        MaterialPageRoute(
+            builder: (BuildContext
+            context) =>
+            const Login()));
   }
 }
