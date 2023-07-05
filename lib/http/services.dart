@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:u_connect/http/api_provider.dart';
-import 'package:u_connect/http/custom_exceptions.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
-import 'package:u_connect/models/http_error.dart';
-import 'package:u_connect/models/login_response.dart';
+import 'package:u_connect/models/company_login_response.dart';
 import 'package:u_connect/models/recover_pass_body.dart';
+
+import '../models/student_login_response.dart';
 
 
 abstract class BaseClient {
   var client = http.Client();
 
   Future getCarreras();
-  Future postRegistrar(Object body);
+  Future postRegistrarEstudiante(Object body);
   Future postLogin(Object body);
   Future postRecuperarPassword(Object body);
 }
@@ -43,9 +43,21 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future postRegistrar(Object body) async {
+  Future postRegistrarEstudiante(Object body) async {
     try {
-      final response = await provider.post("/users/create/", body);
+      final response = await provider.post("/user/create/", body);
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future postRegistrarCompanhia(Object body) async {
+    try {
+      final response = await provider.post("/company/create/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
       return genericOkPostFromJson(json);
     }
@@ -59,7 +71,12 @@ class MyBaseClient extends BaseClient {
     try{
       final response = await provider.post("/login/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
-      return loginResponseFromJson(json);
+      if (json.contains("company")) {
+        return companyLoginResponseFromJson(json);
+      }
+      else {
+        return studentLoginResponseFromJson(json);
+      }
     }
     catch(e) {
       throw Exception(e.toString());
@@ -69,7 +86,7 @@ class MyBaseClient extends BaseClient {
   @override
   Future postRecuperarPassword(Object body) async {
     try{
-      final response = await provider.post("/users/recover_password/", body);
+      final response = await provider.post("/user/recover-password/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
       return recoverPasswordBodyFromJson(json);
     }

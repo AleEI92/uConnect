@@ -52,10 +52,10 @@ class PasswordReset extends StatelessWidget {
                   const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
-                      'Ingrese el correo que utilizó para registrarse.',
+                      'INGRESE SU CORREO',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold
 
                       ),

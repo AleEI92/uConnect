@@ -5,7 +5,7 @@ class Constants {
   static const String ipAle = "http://192.168.0.30:8000";
   static const String disculpe = "Disculpe los inconvenientes.";
 
-  static const String baseURL = "$ipAle/uconnect/api";
+  static const String baseURL = "$ipKinzu/uconnect/api";
 
   static const Map<String, String> baseHeaders = {
     'Content-type': 'application/json',

@@ -7,7 +7,7 @@ import 'custom_exceptions.dart';
 class ApiProvider {
 
   final String _baseUrl = Constants.baseURL;
-  final Duration myTimeout = const Duration(seconds: 10);
+  final Duration myTimeout = const Duration(seconds: 30);
 
   Future<dynamic> get(String url) async {
     dynamic responseJson;

@@ -7,7 +7,8 @@ import 'package:email_validator/email_validator.dart';
 import 'package:u_connect/http/services.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
-import 'package:u_connect/models/registro_user.dart';
+import 'package:u_connect/models/registro_company_body.dart';
+import 'package:u_connect/models/registro_estudiante_body.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 
@@ -279,7 +280,7 @@ class _RegisterState extends State<Register> {
                 onPressed: () async {
                   if (_studentFormKey.currentState!.validate()) {
                     Utils(context).startLoading();
-                    callRegisterFunction().then((value) {
+                    callStudentFunction().then((value) {
                       Utils(context).stopLoading();
                       if (value.message == "OK") {
                         AwesomeDialog(
@@ -302,6 +303,7 @@ class _RegisterState extends State<Register> {
                       }
                     }).onError((error, stackTrace) {
                       Utils(context).stopLoading();
+                      Utils(context).showErrorDialog(error.toString());
                     });
                   }
                 },
@@ -330,6 +332,7 @@ class _RegisterState extends State<Register> {
             children: [
               // COMPANY NAME
               TextFormField(
+                controller: companyNameControl,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un nombre para el registro.';
@@ -349,6 +352,7 @@ class _RegisterState extends State<Register> {
               ),
               // COMPANY EMAIL
               TextFormField(
+                controller: companyMailControl,
                 validator: (value) {
                   return mailValidation(value);
                 },
@@ -380,6 +384,7 @@ class _RegisterState extends State<Register> {
               ),*/
               // COMPANY PASSWORD
               TextFormField(
+                controller: companyPassControl,
                 validator: (value) {
                   return passwordValidation(value);
                 },
@@ -453,9 +458,34 @@ class _RegisterState extends State<Register> {
                     color: Colors.white,
                   ),
                 ),
-                onPressed: () => {
+                onPressed: () async {
                   if (_companyFormKey.currentState!.validate()) {
-                    //callRegisterFunction()
+                    Utils(context).startLoading();
+                    callCompanyFunction().then((value) {
+                      Utils(context).stopLoading();
+                      if (value.message == "OK") {
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Registro exitoso!',
+                            desc:
+                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: 'ACEPTAR',
+                            btnOkOnPress: () {
+                              Navigator.of(context).pop(true);
+                            }).show();
+                      }
+                    }).onError((error, stackTrace) {
+                      Utils(context).stopLoading();
+                      Utils(context).showErrorDialog(error.toString());
+                    });
                   }
                 },
               ),
@@ -678,7 +708,7 @@ class _RegisterState extends State<Register> {
     return null;
   }
 
-  Future<GenericOkPost> callRegisterFunction() async {
+  Future<GenericOkPost> callStudentFunction() async {
     var body = RegistroUser(
         email: studentMailControl.value.text,
         fullName: studentNameControl.value.text,
@@ -686,19 +716,33 @@ class _RegisterState extends State<Register> {
         password: studentPassControl.value.text,
         career: _selectedCarrera);
 
-    return await postRegistrar(registroUserToJson(body));
+    return await postRegisterStudent(registroUserToJson(body));
+  }
+
+  Future<GenericOkPost> postRegisterStudent(Object body) async {
+    var response = await MyBaseClient().postRegistrarEstudiante(body);
+    return response;
+  }
+
+  Future<GenericOkPost> callCompanyFunction() async {
+    var body = RegistroCompany(
+        email: companyMailControl.value.text,
+        name: companyNameControl.value.text,
+        password: companyPassControl.value.text);
+
+    return await postRegisterCompany(registroCompanyToJson(body));
+  }
+
+  Future<GenericOkPost> postRegisterCompany(Object body) async {
+    var response = await MyBaseClient().postRegistrarCompanhia(body);
+    return response;
   }
 
   // SERVICIOS A EJECUTAR EN PANTALLA
   Future<dynamic> getCarreras() async {
-    //var response = await MyBaseClient().getCarreras();
-    var listCarreras = [Carreras(name: 'Ambiental', id: 1), Carreras(name: 'Electronica', id: 2)];
-    var response = listCarreras;
-    return response;
-  }
-
-  Future<GenericOkPost> postRegistrar(Object body) async {
-    var response = await MyBaseClient().postRegistrar(body);
+    var response = await MyBaseClient().getCarreras();
+    //var listCarreras = [Carreras(name: 'Ambiental', id: 1), Carreras(name: 'Electronica', id: 2)];
+    //var response = listCarreras;
     return response;
   }
 }

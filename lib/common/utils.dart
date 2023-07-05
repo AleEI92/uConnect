@@ -55,4 +55,8 @@ class Utils {
       ),
     );
   }
+
+  void storeUserData() {
+
+  }
 }

@@ -1,14 +1,14 @@
 
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_connect/screens/password_reset.dart';
 import 'package:u_connect/screens/register.dart';
-import '../common/constants.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
-import '../models/http_error.dart';
 import 'home.dart';
+
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -24,6 +24,23 @@ class _LoginState extends State<Login> {
   final mailControl = TextEditingController();
   final passControl = TextEditingController();
   bool rememberMe = false;
+  late SharedPreferences prefs;
+
+  @override
+  void initState() {
+    super.initState();
+    loadSP();
+  }
+
+  void loadSP() async {
+    prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey("mail")) {
+      setState(() {
+        rememberMe = true;
+        mailControl.text = prefs.getString("mail")!;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +135,9 @@ class _LoginState extends State<Login> {
                                       onChanged: (bool? value) {
                                         setState(() {
                                           rememberMe = value!;
+                                          if (rememberMe == false) {
+                                            prefs.remove("mail");
+                                          }
                                         });
                                       },
                                     ),
@@ -159,11 +179,14 @@ class _LoginState extends State<Login> {
                                       Utils(context).stopLoading();
                                       Utils(context).showErrorDialog(error.toString());
                                     }).then((value) {
-                                      /*Utils(context).stopLoading();
+                                      setState(() {
+                                          prefs.setString("mail", mailControl.text.toString());
+                                      });
+                                      Utils(context).stopLoading();
                                       Navigator.of(context).pushReplacement(
                                           MaterialPageRoute(
                                               builder: (BuildContext context) =>
-                                                  const Home()));*/
+                                                  const Home()));
                                     });
                                   }
                                 },
