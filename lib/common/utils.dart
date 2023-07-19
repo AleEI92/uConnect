@@ -56,7 +56,34 @@ class Utils {
     );
   }
 
-  void storeUserData() {
-
+  /*Future<void> storeUserData(String userData) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool(Constants.estudiante, true);
+    prefs.setString("userData", userData);
+    if (userData.contains("company")) {
+      prefs.setBool(Constants.estudiante, false);
+    }
   }
+
+  Future<dynamic> retrieveUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? temp = prefs.getString("userData");
+
+    if (temp != null) {
+      if (temp.contains("company")) {
+        return companyLoginResponseFromJson(temp);
+      }
+      else {
+        return studentLoginResponseFromJson(temp);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  Future<bool> userIsStudent() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(Constants.estudiante) ?? true;
+  }*/
 }

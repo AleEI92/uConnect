@@ -1,11 +1,11 @@
 
 import 'dart:convert';
 
-List<Carreras> carrerasFromJson(String str) => List<Carreras>.from(json.decode(str).map((x) => Carreras.fromJson(x)));
-String carrerasToJson(List<Carreras> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+List<Carrera> carrerasFromJson(String str) => List<Carrera>.from(json.decode(str).map((x) => Carrera.fromJson(x)));
+String carrerasToJson(List<Carrera> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
-class Carreras {
-  Carreras({
+class Carrera {
+  Carrera({
     required this.name,
     required this.id,
   });
@@ -13,7 +13,7 @@ class Carreras {
   String name;
   int id;
 
-  factory Carreras.fromJson(Map<String, dynamic> json) => Carreras(
+  factory Carrera.fromJson(Map<String, dynamic> json) => Carrera(
     name: json["name"],
     id: json["id"],
   );

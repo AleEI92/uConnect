@@ -55,7 +55,6 @@ class _RegisterState extends State<Register> {
     data = getCarreras();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +91,7 @@ class _RegisterState extends State<Register> {
     );
   }
 
-  Widget studentForm(List<Carreras> carreras, BuildContext context) {
+  Widget studentForm(List<Carrera> carreras, BuildContext context) {
     return Form(
       key: _studentFormKey,
       child: Card(
@@ -193,9 +192,9 @@ class _RegisterState extends State<Register> {
                     border: OutlineInputBorder(),
                     hintText: 'Seleccione su carrera:'),
                 onChanged: (value) {
-                  setState(() {
+                  //setState(() {
                     _selectedCarrera = value.toString();
-                  });
+                  //});
                 },
               ),
               const SizedBox(
@@ -282,28 +281,30 @@ class _RegisterState extends State<Register> {
                     Utils(context).startLoading();
                     callStudentFunction().then((value) {
                       Utils(context).stopLoading();
-                      if (value.message == "OK") {
-                        AwesomeDialog(
-                            context: context,
-                            dismissOnTouchOutside: false,
-                            dismissOnBackKeyPress: false,
-                            dialogType: DialogType.success,
-                            headerAnimationLoop: false,
-                            animType: AnimType.bottomSlide,
-                            title: '¡Registro exitoso!',
-                            desc:
-                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
-                            buttonsTextStyle:
-                            const TextStyle(color: Colors.black),
-                            showCloseIcon: false,
-                            btnOkText: 'ACEPTAR',
-                            btnOkOnPress: () {
-                              Navigator.of(context).pop(true);
-                            }).show();
+                      if (value != null) {
+                        if (value.message == "OK") {
+                          AwesomeDialog(
+                              context: context,
+                              dismissOnTouchOutside: false,
+                              dismissOnBackKeyPress: false,
+                              dialogType: DialogType.success,
+                              headerAnimationLoop: false,
+                              animType: AnimType.bottomSlide,
+                              title: '¡Registro exitoso!',
+                              desc:
+                              'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                              buttonsTextStyle:
+                              const TextStyle(color: Colors.black),
+                              showCloseIcon: false,
+                              btnOkText: 'ACEPTAR',
+                              btnOkOnPress: () {
+                                Navigator.of(context).pop(true);
+                              }).show();
+                        }
                       }
                     }).onError((error, stackTrace) {
                       Utils(context).stopLoading();
-                      Utils(context).showErrorDialog(error.toString());
+                      Utils(context).showErrorDialog(error.toString()).show();
                     });
                   }
                 },
@@ -463,28 +464,30 @@ class _RegisterState extends State<Register> {
                     Utils(context).startLoading();
                     callCompanyFunction().then((value) {
                       Utils(context).stopLoading();
-                      if (value.message == "OK") {
-                        AwesomeDialog(
-                            context: context,
-                            dismissOnTouchOutside: false,
-                            dismissOnBackKeyPress: false,
-                            dialogType: DialogType.success,
-                            headerAnimationLoop: false,
-                            animType: AnimType.bottomSlide,
-                            title: '¡Registro exitoso!',
-                            desc:
-                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
-                            buttonsTextStyle:
-                            const TextStyle(color: Colors.black),
-                            showCloseIcon: false,
-                            btnOkText: 'ACEPTAR',
-                            btnOkOnPress: () {
-                              Navigator.of(context).pop(true);
-                            }).show();
+                      if (value != null) {
+                        if (value.message == "OK") {
+                          AwesomeDialog(
+                              context: context,
+                              dismissOnTouchOutside: false,
+                              dismissOnBackKeyPress: false,
+                              dialogType: DialogType.success,
+                              headerAnimationLoop: false,
+                              animType: AnimType.bottomSlide,
+                              title: '¡Registro exitoso!',
+                              desc:
+                              'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                              buttonsTextStyle:
+                              const TextStyle(color: Colors.black),
+                              showCloseIcon: false,
+                              btnOkText: 'ACEPTAR',
+                              btnOkOnPress: () {
+                                Navigator.of(context).pop(true);
+                              }).show();
+                        }
                       }
                     }).onError((error, stackTrace) {
                       Utils(context).stopLoading();
-                      Utils(context).showErrorDialog(error.toString());
+                      Utils(context).showErrorDialog(error.toString()).show();
                     });
                   }
                 },
@@ -585,7 +588,7 @@ class _RegisterState extends State<Register> {
                   horizontal: 8.0, vertical: 8),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: _isStudentForm ? studentForm(snapshot.data as List<Carreras>, context) : companyForm(),
+                child: _isStudentForm ? studentForm(snapshot.data as List<Carrera>, context) : companyForm(),
               ),
             ),
           ),

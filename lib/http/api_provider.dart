@@ -1,4 +1,5 @@
 
+
 import 'package:http/http.dart' as http;
 import 'package:u_connect/common/constants.dart';
 import 'dart:io';
@@ -6,8 +7,25 @@ import 'custom_exceptions.dart';
 
 class ApiProvider {
 
+  static ApiProvider? myInstance;
+
+  static ApiProvider getInstance() {
+    myInstance ??= ApiProvider();
+    return myInstance!;
+  }
+
   final String _baseUrl = Constants.baseURL;
   final Duration myTimeout = const Duration(seconds: 30);
+
+  Map<String, String> baseHeaders = {
+    'Content-type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  Map<String, String> loginHeaders = {
+    'Content-type': 'application/x-www-form-urlencoded',
+    'Accept': 'application/json',
+  };
 
   Future<dynamic> get(String url) async {
     dynamic responseJson;
@@ -28,11 +46,11 @@ class ApiProvider {
       dynamic response;
       if (url.contains("login")) {
         response = await http.post(Uri.parse(_baseUrl + url),
-            body: body, headers: Constants.loginHeaders).timeout(myTimeout);
+            body: body, headers: loginHeaders).timeout(myTimeout);
       }
       else {
         response = await http.post(Uri.parse(_baseUrl + url),
-            body: body, headers: Constants.baseHeaders).timeout(myTimeout);
+            body: body, headers: baseHeaders).timeout(myTimeout);
       }
       responseJson = _response(response);
     } on SocketException {
@@ -58,8 +76,10 @@ class ApiProvider {
 
       case 500:
       default:
+        print(response.body);
         throw FetchDataException(
-            'Error occured while Communication with Server with StatusCode: ${response.statusCode}');
+            'Error occured while Communication with Server with StatusCode: '
+                '${response.statusCode}');
     }
   }
 }

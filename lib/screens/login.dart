@@ -2,6 +2,7 @@
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:u_connect/common/session.dart';
 import 'package:u_connect/screens/password_reset.dart';
 import 'package:u_connect/screens/register.dart';
 import '../common/utils.dart';
@@ -165,7 +166,7 @@ class _LoginState extends State<Login> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  if (_loginFormKey.currentState!.validate()) {
+                                  /*if (_loginFormKey.currentState!.validate()) {
                                     Utils(context).startLoading();
                                     var loginBody = {
                                       "username":
@@ -177,18 +178,28 @@ class _LoginState extends State<Login> {
                                         .postLogin(loginBody)
                                         .onError((error, stackTrace) {
                                       Utils(context).stopLoading();
-                                      Utils(context).showErrorDialog(error.toString());
+                                      Utils(context).showErrorDialog(error.toString()).show();
                                     }).then((value) {
-                                      setState(() {
-                                          prefs.setString("mail", mailControl.text.toString());
-                                      });
-                                      Utils(context).stopLoading();
-                                      Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                                  const Home()));
+                                      if (value != null) {
+                                        setState(() {
+                                            prefs.setString("mail", mailControl.text.toString());
+                                        });
+
+                                        Session.getInstance().setSessionData(value);
+
+                                        Utils(context).stopLoading();
+                                        Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                                builder: (BuildContext context) =>
+                                                const Home()));
+                                      }
+                                      /////////////////////////////////////
                                     });
-                                  }
+                                  }*/
+                                  Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                          builder: (BuildContext context) =>
+                                          const Home()));
                                 },
                               ),
                               TextButton(
