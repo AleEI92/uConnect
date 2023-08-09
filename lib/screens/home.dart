@@ -1,11 +1,10 @@
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/screens/profile.dart';
 import 'package:u_connect/screens/view_jobs.dart';
 import '../common/session.dart';
 import '../custom_widgets/background_decor.dart';
-import '../http/services.dart';
-import '../models/oferta_body.dart';
 import 'job_creation.dart';
 import 'login.dart';
 
@@ -19,10 +18,13 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
   bool isStudentSession = false;
+  late Session _session;
+  final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
 
   @override
   void initState() {
     super.initState();
+    _session = Session.getInstance();
   }
 
   @override
@@ -30,6 +32,68 @@ class _HomeState extends State<Home> {
     return WillPopScope(
       onWillPop: () => _onBackPressed(context),
       child: Scaffold(
+        key: _key,
+        drawer: Drawer(
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Color(0xFF64B5F6),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _session.isStudent
+                        ? const Icon(Icons.account_circle_rounded, size: 62)
+                        : const Icon(Icons.business_rounded, size: 62),
+                    //Text(_session.userName),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    Text(
+                      _session.userName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.manage_accounts_rounded),
+                title: const Text(
+                  'Perfil',
+                  style: TextStyle(fontSize: 14)
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (BuildContext context) =>
+                          const Profile()));
+                },
+              ),
+              const Divider(thickness: 2),
+              ListTile(
+                leading: const Icon(Icons.info_rounded),
+                title: const Text(
+                    'Información',
+                    style: TextStyle(fontSize: 14)
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+              const Divider(thickness: 2),
+            ],
+          ),
+        ),
+        drawerEnableOpenDragGesture: false,
         appBar: AppBar(
           title: const Text('uConnect'),
           leading: IconButton(
@@ -38,7 +102,7 @@ class _HomeState extends State<Home> {
               color: Colors.white,
             ),
             onPressed: () {
-              // do something
+              _key.currentState!.openDrawer();
             },
           ),
           actions: [

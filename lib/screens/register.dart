@@ -43,7 +43,7 @@ class _RegisterState extends State<Register> {
   var _passConfirmHide = true;
   var _selectedCarrera = '';
   var _selectedShadowButton = true;
-  late Future<dynamic> data;
+  late Future<List<Carrera>> data;
   /////////////////////////////////
 
   @override
@@ -281,26 +281,24 @@ class _RegisterState extends State<Register> {
                     Utils(context).startLoading();
                     callStudentFunction().then((value) {
                       Utils(context).stopLoading();
-                      if (value != null) {
-                        if (value.message == "OK") {
-                          AwesomeDialog(
-                              context: context,
-                              dismissOnTouchOutside: false,
-                              dismissOnBackKeyPress: false,
-                              dialogType: DialogType.success,
-                              headerAnimationLoop: false,
-                              animType: AnimType.bottomSlide,
-                              title: '¡Registro exitoso!',
-                              desc:
-                              'Se ha registrado correctamente. Ya puede iniciar sesión.',
-                              buttonsTextStyle:
-                              const TextStyle(color: Colors.black),
-                              showCloseIcon: false,
-                              btnOkText: 'ACEPTAR',
-                              btnOkOnPress: () {
-                                Navigator.of(context).pop(true);
-                              }).show();
-                        }
+                      if (value.message == "OK") {
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Registro exitoso!',
+                            desc:
+                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: 'ACEPTAR',
+                            btnOkOnPress: () {
+                              Navigator.of(context).pop(true);
+                            }).show();
                       }
                     }).onError((error, stackTrace) {
                       Utils(context).stopLoading();
@@ -464,26 +462,24 @@ class _RegisterState extends State<Register> {
                     Utils(context).startLoading();
                     callCompanyFunction().then((value) {
                       Utils(context).stopLoading();
-                      if (value != null) {
-                        if (value.message == "OK") {
-                          AwesomeDialog(
-                              context: context,
-                              dismissOnTouchOutside: false,
-                              dismissOnBackKeyPress: false,
-                              dialogType: DialogType.success,
-                              headerAnimationLoop: false,
-                              animType: AnimType.bottomSlide,
-                              title: '¡Registro exitoso!',
-                              desc:
-                              'Se ha registrado correctamente. Ya puede iniciar sesión.',
-                              buttonsTextStyle:
-                              const TextStyle(color: Colors.black),
-                              showCloseIcon: false,
-                              btnOkText: 'ACEPTAR',
-                              btnOkOnPress: () {
-                                Navigator.of(context).pop(true);
-                              }).show();
-                        }
+                      if (value.message == "OK") {
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Registro exitoso!',
+                            desc:
+                            'Se ha registrado correctamente. Ya puede iniciar sesión.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: 'ACEPTAR',
+                            btnOkOnPress: () {
+                              Navigator.of(context).pop(true);
+                            }).show();
                       }
                     }).onError((error, stackTrace) {
                       Utils(context).stopLoading();
@@ -742,7 +738,7 @@ class _RegisterState extends State<Register> {
   }
 
   // SERVICIOS A EJECUTAR EN PANTALLA
-  Future<dynamic> getCarreras() async {
+  Future<List<Carrera>> getCarreras() async {
     var response = await MyBaseClient().getCarreras();
     //var listCarreras = [Carreras(name: 'Ambiental', id: 1), Carreras(name: 'Electronica', id: 2)];
     //var response = listCarreras;

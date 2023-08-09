@@ -10,6 +10,10 @@ OfertaBody ofertaBodyFromJson(String str) => OfertaBody.fromJson(json.decode(str
 
 String ofertaBodyToJson(OfertaBody data) => json.encode(data.toJson());
 
+List<OfertaBody> misOfertasBodyFromJson(String str) => List<OfertaBody>.from(json.decode(str).map((x) => OfertaBody.fromJson(x)));
+
+String misOfertasBodyToJson(List<OfertaBody> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+
 class OfertaBody {
   int? id;
   String? description;
@@ -45,7 +49,7 @@ class OfertaBody {
     active: json["active"],
     fileId: json["file_id"],
     creationDate: DateTime.parse(json["creation_date"]),
-    skills: List<Skill>.from(json["skills"].map((x) => Skill.fromJson(x))),
+    skills: json["skills"] != null ? List<Skill>.from(json["skills"].map((x) => Skill.fromJson(x))) : null
   );
 
   Map<String, dynamic> toJson() => {
@@ -58,6 +62,6 @@ class OfertaBody {
     "active": active,
     "file_id": fileId,
     "creation_date": "${creationDate?.year.toString().padLeft(4, '0')}-${creationDate?.month.toString().padLeft(2, '0')}-${creationDate?.day.toString().padLeft(2, '0')}",
-    "skills": List<dynamic>.from(skills!.map((x) => x.toJson())),
+    "skills": skills != null ? List<dynamic>.from(skills!.map((x) => x.toJson())) : null,
   };
 }

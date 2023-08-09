@@ -1,14 +1,15 @@
-import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/common/session.dart';
 import 'package:u_connect/models/oferta_crear_body.dart';
+import 'package:u_connect/screens/job_creation_skills.dart';
 
-import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 import '../models/carreras_response.dart';
 import '../models/generic_post_ok.dart';
 import '../models/skill_body.dart';
+
 
 class JobCreation extends StatefulWidget {
   const JobCreation({super.key});
@@ -19,22 +20,22 @@ class JobCreation extends StatefulWidget {
 
 class _JobCreationState extends State<JobCreation> {
   final _formKey = GlobalKey<FormState>();
-  late Future<dynamic> data;
-  final List<Carrera> _listModalidades = [Carrera(name: 'Trabajo', id: 1), Carrera(name: 'Pasantía', id: 2)];
-  final List<Carrera> _listCarreras = [];
-  final List<Carrera> _listCiudades = [];
+  List<Carrera> _listCarreras = [];
+  List<Carrera> _listCiudades = [];
   String _selectedModalidad = '';
   String _selectedCarrera = '';
   String _selectedCiudad = '';
   final descriptionControl = TextEditingController();
 
+  final List<Widget> myWidgetSkills = [];
+  final description = TextEditingController();
+  final GlobalKey<FormFieldState> _keyDrop = GlobalKey();
+  String _selectedExperience = '';
+
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero,() {
-      Utils(context).startLoading();
-    });
-    data = getCiudadesYCarreras();
+    loadCiudadesYCarreras();
   }
 
   @override
@@ -44,33 +45,12 @@ class _JobCreationState extends State<JobCreation> {
         title: const Text('Crear Oferta'),
       ),
       body: SafeArea(
-        child: FutureBuilder<dynamic>(
-          future: data,
-          builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              Utils(context).stopLoading();
-              // ERROR EN SERVICIO DE CARRERAS
-              if (snapshot.hasError) {
-                return myDialog();
-              }
-              // MOSTRAMOS FORMULARIOS
-              else if (snapshot.hasData) {
-                return showForm(snapshot.data);
-              }
-              else {
-                return Container();
-              }
-            }
-            else {
-              return Container();
-            }
-          },
-        ),
+        child: showForm(),
       ),
     );
   }
 
-  Widget showForm(List<Carrera> ciudades) {
+  Widget showForm() {
     return Container(
       decoration: myAppBackground(),
       width: double.maxFinite,
@@ -123,7 +103,7 @@ class _JobCreationState extends State<JobCreation> {
                         return null;
                       },
                       icon: const Icon(Icons.keyboard_arrow_down),
-                      items: _listModalidades.map((carrera) {
+                      items: Constants.listaModalidad.map((carrera) {
                         return DropdownMenuItem<String>(
                           value: carrera.name,
                           child: Text(carrera.name),
@@ -188,6 +168,17 @@ class _JobCreationState extends State<JobCreation> {
                       },
                     ),
                     const SizedBox(
+                      height: 20.0,
+                    ),
+                    skillForm(),
+                    const SizedBox(
+                      height: 20.0,
+                    ),
+                    Column(
+                      children: myWidgetSkills,
+                    ),
+
+                    const SizedBox(
                       height: 50.0,
                     ),
                     ElevatedButton(
@@ -196,7 +187,7 @@ class _JobCreationState extends State<JobCreation> {
                         backgroundColor: MaterialStateProperty.all(Colors.white54),
                       ),
                       child: const Text(
-                        'REGISTRAR',
+                        'CREAR OFERTA',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -204,34 +195,10 @@ class _JobCreationState extends State<JobCreation> {
                         ),
                       ),
                       onPressed: () async {
-                        //if (_companyFormKey.currentState!.validate()) {
-                          Utils(context).startLoading();
-                          callOfferFunction().then((value) {
-                            Utils(context).stopLoading();
-                            if (value.message == "OK") {
-                              AwesomeDialog(
-                                  context: context,
-                                  dismissOnTouchOutside: false,
-                                  dismissOnBackKeyPress: false,
-                                  dialogType: DialogType.success,
-                                  headerAnimationLoop: false,
-                                  animType: AnimType.bottomSlide,
-                                  title: '¡Creación de oferta exitosa!',
-                                  desc:
-                                  'Se ha creado la oferta correctamente.',
-                                  buttonsTextStyle:
-                                  const TextStyle(color: Colors.black),
-                                  showCloseIcon: false,
-                                  btnOkText: 'ACEPTAR',
-                                  btnOkOnPress: () {
-                                    Navigator.of(context).pop(true);
-                                  }).show();
-                            }
-                          }).onError((error, stackTrace) {
-                            Utils(context).stopLoading();
-                            Utils(context).showErrorDialog(error.toString()).show();
-                          });
-                        //}
+                        /*Navigator.of(context).push(
+                            MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                const JobCreationSkills()));*/
                       },
                     ),
                   ],
@@ -240,6 +207,79 @@ class _JobCreationState extends State<JobCreation> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget loadSkill(String descrip, String exp) {
+    return Row(
+      children: [
+        Expanded(child: Text("$descrip\nExperiencia: $exp")),
+        GestureDetector(
+          onTap: () {},
+          child: const Icon(
+            Icons.delete_rounded,
+            color: Colors.red,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget skillForm() {
+    return Form(
+      child: Row(
+        children: [
+          Expanded(
+            child: TextFormField(
+              controller: description,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Campo no puede estar vacio.';
+                }
+                return null;
+              },
+              style: const TextStyle(fontSize: 15.0),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'Habilidad',
+                  hintText: 'Ingrese una habilidad'),
+            ),
+          ),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              key: _keyDrop,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: Constants.listaExperiencia.map((years) {
+                return DropdownMenuItem<String>(
+                  value: years,
+                  child: Text(years),
+                );
+              }).toList(),
+              decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Años'),
+              onChanged: (value) {
+                _selectedExperience = value.toString();
+              },
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                myWidgetSkills.add(loadSkill(description.text.toString(), _selectedExperience));
+                description.clear();
+                _selectedExperience = "";
+                _keyDrop.currentState?.reset();
+              });
+
+            },
+            child: const Icon(
+              Icons.add_box_rounded,
+              color: Colors.green,
+            ),
+          )
+        ],
       ),
     );
   }
@@ -335,17 +375,9 @@ class _JobCreationState extends State<JobCreation> {
     );
   }
 
-  Future<List<Carrera>> getCiudadesYCarreras() async {
-    List<Carrera> resultado = [];
-    List<Carrera> ciudades = await MyBaseClient().getCiudades();
-    List<Carrera> carreras = await MyBaseClient().getCarreras();
-
-    if (ciudades.isNotEmpty && carreras.isNotEmpty) {
-      resultado.addAll(ciudades);
-      resultado.addAll(carreras);
-    }
-
-    return resultado;
+  void loadCiudadesYCarreras() {
+    _listCarreras = Session.getInstance().allCarreras!;
+    _listCiudades = Session.getInstance().allCiudades!;
   }
 
   Future<GenericOkPost> callOfferFunction() async {

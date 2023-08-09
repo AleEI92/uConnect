@@ -3,6 +3,7 @@
 
 import 'package:u_connect/models/company_login_response.dart';
 
+import '../models/carreras_response.dart';
 import '../models/student_login_response.dart';
 
 class Session {
@@ -14,13 +15,20 @@ class Session {
   String userPhoneNumber;
   String userCareer;
   String userToken;
+  int? fileId;
+  bool isStudent = true;
+  late List<Carrera>? allCarreras;
+  late List<Carrera>? allCiudades;
 
   Session([this.userEmail = '',
     this.userName = '',
     this.userID = -1,
     this.userPhoneNumber = '',
     this.userCareer = '',
-    this.userToken = ''
+    this.userToken = '',
+    this.fileId,
+    this.allCarreras,
+    this.allCiudades
   ]);
 
   static Session getInstance() {
@@ -36,12 +44,25 @@ class Session {
       userPhoneNumber = user.user.phoneNumber;
       userCareer = user.user.careerName;
       userToken = user.accessToken;
+      fileId = user.user.fileId;
+      isStudent = true;
     }
     else {
       userEmail = (user as CompanyLoginResponse).company.email;
       userName = user.company.name;
       userID = user.company.id;
       userToken = user.accessToken;
+      isStudent = false;
     }
+  }
+
+  void setCarrerasData(List<Carrera> data) {
+    _myInstance?.allCarreras = [];
+    _myInstance?.allCarreras!.addAll(data);
+  }
+
+  void setCiudadesData(List<Carrera> data) {
+    _myInstance?.allCiudades = [];
+    _myInstance?.allCiudades!.addAll(data);
   }
 }

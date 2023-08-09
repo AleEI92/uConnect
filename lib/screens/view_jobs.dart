@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:u_connect/models/oferta_body.dart';
-import 'package:u_connect/models/skill_body.dart';
 import 'package:u_connect/screens/job_detail.dart';
 
+import '../common/session.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 
@@ -102,7 +102,7 @@ class _ViewJobsState extends State<ViewJobs> {
                           ),
                         ],
                       ),
-                      Spacer(),
+                      const Spacer(),
                       const Icon(Icons.arrow_forward_ios_rounded),
                     ],
                   ),
@@ -210,8 +210,9 @@ class _ViewJobsState extends State<ViewJobs> {
 
   // SERVICIOS A EJECUTAR EN PANTALLA
   Future<dynamic> getOfertasByCompany() async {
-    //var response = await MyBaseClient().getCarreras();
-    OfertaBody oferta = OfertaBody(
+    var response = await MyBaseClient().getOfertasByID(Session.getInstance().userID);
+    //var response = await MyBaseClient().getOfertaByID(10);
+    /*OfertaBody oferta = OfertaBody(
       description: "Esta es una oferta de prueba!",
       careerName: "Ing. Civil",
       jobType: "Trabajo",
@@ -225,7 +226,7 @@ class _ViewJobsState extends State<ViewJobs> {
       ]
     );
     var listOfertas = [oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta];
-    var response = listOfertas;
+    var response = listOfertas;*/
     return response;
   }
 }

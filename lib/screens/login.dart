@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_connect/common/session.dart';
 import 'package:u_connect/screens/password_reset.dart';
 import 'package:u_connect/screens/register.dart';
+import '../common/constants.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
@@ -166,20 +167,22 @@ class _LoginState extends State<Login> {
                                   ),
                                 ),
                                 onPressed: () async {
-                                  /*if (_loginFormKey.currentState!.validate()) {
-                                    Utils(context).startLoading();
+                                  if (_loginFormKey.currentState!.validate()) {
                                     var loginBody = {
                                       "username":
                                           mailControl.text.toString().trim(),
                                       "password":
                                           passControl.text.toString().trim()
                                     };
+
+                                    Utils(context).startLoading();
                                     await MyBaseClient()
                                         .postLogin(loginBody)
                                         .onError((error, stackTrace) {
                                       Utils(context).stopLoading();
                                       Utils(context).showErrorDialog(error.toString()).show();
-                                    }).then((value) {
+                                    }).then((value) async {
+                                      //Utils(context).stopLoading();
                                       if (value != null) {
                                         setState(() {
                                             prefs.setString("mail", mailControl.text.toString());
@@ -187,19 +190,39 @@ class _LoginState extends State<Login> {
 
                                         Session.getInstance().setSessionData(value);
 
-                                        Utils(context).stopLoading();
-                                        Navigator.of(context).pushReplacement(
-                                            MaterialPageRoute(
-                                                builder: (BuildContext context) =>
-                                                const Home()));
+                                        var allCarreras = await MyBaseClient().getCarreras()
+                                            .onError((error, stackTrace) {
+                                          return [];
+                                        });
+                                        if (allCarreras.isNotEmpty) {
+                                          Session.getInstance().setCarrerasData(allCarreras);
+                                          var allCiudades = await MyBaseClient().getCiudades()
+                                              .onError((error, stackTrace) {
+                                            return [];
+                                          });
+                                          if (allCiudades.isNotEmpty) {
+                                            Session.getInstance().setCiudadesData(allCiudades);
+                                            if (!mounted) return;
+                                            Navigator.of(context).pushReplacement(
+                                                MaterialPageRoute(
+                                                    builder: (BuildContext context) =>
+                                                    const Home()));
+                                          }
+                                          else {
+                                            if (!mounted) return;
+                                            Utils(context).stopLoading();
+                                            Utils(context).showErrorDialog(Constants.disculpe).show();
+                                          }
+                                        }
+                                        else {
+                                          if (!mounted) return;
+                                          Utils(context).stopLoading();
+                                          Utils(context).showErrorDialog(Constants.disculpe).show();
+                                        }
                                       }
                                       /////////////////////////////////////
                                     });
-                                  }*/
-                                  Navigator.of(context).pushReplacement(
-                                      MaterialPageRoute(
-                                          builder: (BuildContext context) =>
-                                          const Home()));
+                                  }
                                 },
                               ),
                               TextButton(

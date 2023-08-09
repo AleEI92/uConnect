@@ -15,7 +15,7 @@ class ApiProvider {
   }
 
   final String _baseUrl = Constants.baseURL;
-  final Duration myTimeout = const Duration(seconds: 30);
+  final Duration myTimeout = const Duration(seconds: 15);
 
   Map<String, String> baseHeaders = {
     'Content-type': 'application/json',
@@ -31,7 +31,9 @@ class ApiProvider {
     dynamic responseJson;
     try {
       print("GET: ${(_baseUrl + url)}");
-      final response = await http.get(Uri.parse(_baseUrl + url)).timeout(myTimeout);
+      print("Headers: $baseHeaders");
+      final response = await http.get(Uri.parse(_baseUrl + url),
+          headers: baseHeaders).timeout(myTimeout);
       responseJson = _response(response);
     } on SocketException {
       throw FetchDataException('No Internet connection');
@@ -49,6 +51,7 @@ class ApiProvider {
             body: body, headers: loginHeaders).timeout(myTimeout);
       }
       else {
+        print("Headers: $baseHeaders");
         response = await http.post(Uri.parse(_baseUrl + url),
             body: body, headers: baseHeaders).timeout(myTimeout);
       }

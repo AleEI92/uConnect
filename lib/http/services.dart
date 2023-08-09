@@ -23,6 +23,9 @@ abstract class BaseClient {
   Future getCiudades();
   Future postCrearOferta(Object body);
   Future getOfertasByID(int idCompany);
+  Future getOfertaByID(int idOferta);
+  Future putEditarEstudiante(int idStudent);
+  Future putEditarCompanhia(int idCompany);
 }
 
 class MyBaseClient extends BaseClient {
@@ -38,7 +41,7 @@ class MyBaseClient extends BaseClient {
 
   //////////////////////////////////////////////////////////////////////////
   @override
-  Future getCarreras() async {
+  Future<List<Carrera>> getCarreras() async {
     try {
       final response = await provider.get("/career/all/");
       String json = _myUT8JsonParser(response.bodyBytes);
@@ -103,7 +106,7 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future getCiudades() async {
+  Future<List<Carrera>> getCiudades() async {
     try{
       final response = await provider.get("/city/all/");
       String json = _myUT8JsonParser(response.bodyBytes);
@@ -120,7 +123,7 @@ class MyBaseClient extends BaseClient {
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       final response = await provider.post("/job/create/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
-      return genericOkPostFromJson(json);
+      return ofertaBodyFromJson(json);
     }
     catch(e) {
       throw Exception(e.toString());
@@ -132,6 +135,45 @@ class MyBaseClient extends BaseClient {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       final response = await provider.get("/job/company-id/$idCompany/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return misOfertasBodyFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future getOfertaByID(int idOferta) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/job/id/$idOferta/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return ofertaBodyFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future putEditarCompanhia(int idCompany) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/job/id/$idCompany/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return ofertaBodyFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future putEditarEstudiante(int idStudent) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/job/id/$idStudent/");
       String json = _myUT8JsonParser(response.bodyBytes);
       return ofertaBodyFromJson(json);
     }

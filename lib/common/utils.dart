@@ -9,7 +9,6 @@ import '../models/dialog_body.dart';
 class Utils {
 
   late BuildContext context;
-
   Utils(this.context);
 
   // this is where you would do your fullscreen loading
@@ -18,17 +17,20 @@ class Utils {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return const SimpleDialog(
-          elevation: 0.0,
-          backgroundColor: Colors.transparent, // can change this to your prefered color
-          children: <Widget>[
-            Center(
-              child: SpinKitRipple(
-                color: Colors.cyan,
-                size: 90.0,
-              ),
-            )
-          ],
+        return WillPopScope(
+          onWillPop: () async => false,
+          child: const SimpleDialog(
+            elevation: 0.0,
+            backgroundColor: Colors.transparent, // can change this to your prefered color
+            children: <Widget>[
+              Center(
+                child: SpinKitRipple(
+                  color: Colors.cyan,
+                  size: 90.0,
+                ),
+              )
+            ],
+          ),
         );
       },
     );

@@ -12,6 +12,7 @@ class Carrera {
 
   String name;
   int id;
+  String type = "";
 
   factory Carrera.fromJson(Map<String, dynamic> json) => Carrera(
     name: json["name"],
