@@ -17,7 +17,7 @@ class CrearOfertaBody {
   String city;
   int companyId;
   String? file;
-  List<Skill> skill;
+  List<Skill> skills;
 
   CrearOfertaBody({
     required this.description,
@@ -26,7 +26,7 @@ class CrearOfertaBody {
     required this.city,
     required this.companyId,
     this.file,
-    required this.skill,
+    required this.skills,
   });
 
   factory CrearOfertaBody.fromJson(Map<String, dynamic> json) => CrearOfertaBody(
@@ -36,7 +36,7 @@ class CrearOfertaBody {
     city: json["city"],
     companyId: json["company_id"],
     file: json["file"],
-    skill: List<Skill>.from(json["skill"].map((x) => Skill.fromJson(x))),
+    skills: List<Skill>.from(json["skills"].map((x) => Skill.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -46,6 +46,6 @@ class CrearOfertaBody {
     "city": city,
     "company_id": companyId,
     "file": file,
-    "skill": List<dynamic>.from(skill.map((x) => x.toJson())),
+    "skills": List<dynamic>.from(skills.map((x) => x.toJson())),
   };
 }

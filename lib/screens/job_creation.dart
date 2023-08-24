@@ -1,13 +1,18 @@
+
+import 'dart:convert';
+
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/common/session.dart';
 import 'package:u_connect/models/oferta_crear_body.dart';
-import 'package:u_connect/screens/job_creation_skills.dart';
+import 'package:file_picker/file_picker.dart';
 
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 import '../models/carreras_response.dart';
-import '../models/generic_post_ok.dart';
+import '../models/oferta_body.dart';
 import '../models/skill_body.dart';
 
 
@@ -26,10 +31,11 @@ class _JobCreationState extends State<JobCreation> {
   String _selectedCarrera = '';
   String _selectedCiudad = '';
   final descriptionControl = TextEditingController();
+  final descriptionSkillControl = TextEditingController();
+  final GlobalKey<FormFieldState> _keyExperience = GlobalKey();
 
-  final List<Widget> myWidgetSkills = [];
-  final description = TextEditingController();
-  final GlobalKey<FormFieldState> _keyDrop = GlobalKey();
+  final List<String> listDescription = [""];
+  final List<String> listEXP = [""];
   String _selectedExperience = '';
 
   @override
@@ -174,8 +180,21 @@ class _JobCreationState extends State<JobCreation> {
                     const SizedBox(
                       height: 20.0,
                     ),
-                    Column(
-                      children: myWidgetSkills,
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: listDescription.length,
+                      itemBuilder: (context, index) {
+                        return Column(
+                          children: [
+                            index > 0
+                                ? loadSkill(
+                                    index,
+                                    listDescription[index].toString(),
+                                    listEXP[index].toString())
+                                : const SizedBox()
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(
@@ -195,10 +214,55 @@ class _JobCreationState extends State<JobCreation> {
                         ),
                       ),
                       onPressed: () async {
-                        /*Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                const JobCreationSkills()));*/
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Oferta creada exitosamente!',
+                            desc:
+                            '¿Desea adjuntar un archivo(.pdf o .png) a la oferta creada?',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnCancelText: 'VOLVER',
+                            btnCancelOnPress: () {
+                              Navigator.of(context).pop(true);
+                            },
+                            btnOkText: 'CARGAR',
+                            btnOkOnPress: () async {
+                              chooseFile();
+                            }).show();
+                        /*Utils(context).startLoading();
+                        callOfferFunction().then((value) {
+                          Utils(context).stopLoading();
+                          AwesomeDialog(
+                              context: context,
+                              dismissOnTouchOutside: false,
+                              dismissOnBackKeyPress: false,
+                              dialogType: DialogType.success,
+                              headerAnimationLoop: false,
+                              animType: AnimType.bottomSlide,
+                              title: '¡Oferta creada exitosamente!',
+                              desc:
+                              'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(.pdf o .png) a la oferta creada?',
+                              buttonsTextStyle:
+                              const TextStyle(color: Colors.black),
+                              showCloseIcon: false,
+                              btnCancelText: 'VOLVER',
+                              btnCancelOnPress: () {
+                                Navigator.of(context).pop(true);
+                              },
+                              btnOkText: 'CARGAR',
+                              btnOkOnPress: () {
+
+                              }).show();
+                        }).onError((error, stackTrace) {
+                          Utils(context).stopLoading();
+                          Utils(context).showErrorDialog(error.toString()).show();
+                        });*/
                       },
                     ),
                   ],
@@ -211,18 +275,28 @@ class _JobCreationState extends State<JobCreation> {
     );
   }
 
-  Widget loadSkill(String descrip, String exp) {
-    return Row(
+  Widget loadSkill(int index, String descrip, String exp) {
+    return Column(
       children: [
-        Expanded(child: Text("$descrip\nExperiencia: $exp")),
-        GestureDetector(
-          onTap: () {},
-          child: const Icon(
-            Icons.delete_rounded,
-            color: Colors.red,
-          ),
-        )
-      ],
+        Row(
+          children: [
+            Expanded(child: Text("$descrip\nExperiencia: $exp")),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  listDescription.removeAt(index);
+                  listEXP.removeAt(index);
+                });
+              },
+              child: const Icon(
+                Icons.delete_rounded,
+                color: Colors.red,
+              ),
+            )
+          ],
+        ),
+        const SizedBox(height: 10)
+      ]
     );
   }
 
@@ -232,7 +306,7 @@ class _JobCreationState extends State<JobCreation> {
         children: [
           Expanded(
             child: TextFormField(
-              controller: description,
+              controller: descriptionSkillControl,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Campo no puede estar vacio.';
@@ -241,14 +315,20 @@ class _JobCreationState extends State<JobCreation> {
               },
               style: const TextStyle(fontSize: 15.0),
               decoration: const InputDecoration(
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 23.0, horizontal: 12.0),
                   border: OutlineInputBorder(),
                   labelText: 'Habilidad',
                   hintText: 'Ingrese una habilidad'),
             ),
           ),
-          Expanded(
+          const SizedBox(
+            width: 10,
+          ),
+          SizedBox(
+            width: 90,
             child: DropdownButtonFormField<String>(
-              key: _keyDrop,
+              key: _keyExperience,
               icon: const Icon(Icons.keyboard_arrow_down),
               items: Constants.listaExperiencia.map((years) {
                 return DropdownMenuItem<String>(
@@ -264,15 +344,22 @@ class _JobCreationState extends State<JobCreation> {
               },
             ),
           ),
+          const SizedBox(
+            width: 10,
+          ),
           GestureDetector(
             onTap: () {
+              if (descriptionSkillControl.text.isEmpty ||
+                  _selectedExperience.isEmpty) {
+                return;
+              }
               setState(() {
-                myWidgetSkills.add(loadSkill(description.text.toString(), _selectedExperience));
-                description.clear();
-                _selectedExperience = "";
-                _keyDrop.currentState?.reset();
+                listDescription.add(descriptionSkillControl.text.toString());
+                listEXP.add(_selectedExperience);
               });
-
+              descriptionSkillControl.clear();
+              _selectedExperience = "";
+              _keyExperience.currentState?.reset();
             },
             child: const Icon(
               Icons.add_box_rounded,
@@ -380,21 +467,56 @@ class _JobCreationState extends State<JobCreation> {
     _listCiudades = Session.getInstance().allCiudades!;
   }
 
-  Future<GenericOkPost> callOfferFunction() async {
+  Future<OfertaBody> callOfferFunction() async {
+    final List<Skill> list = [];
+    for (var i = 0; i < listDescription.length; i++) {
+      list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
+    }
+    list.removeAt(0);
+
     var body = CrearOfertaBody(
       description: descriptionControl.text.toString().trim(),
       jobType: _selectedModalidad,
-      career: 'Ing. Civil',
-      city: 'San Lorenzo',
+      career: _selectedCarrera,
+      city: _selectedCiudad,
       companyId: Session.getInstance().userID,
-      skill: [Skill(skillName: 'Kotlin', experience: '2'), Skill(skillName: 'Flutter', experience: '1')],
+      skills: list,
     );
 
     return await postCreateOffer(ofertaToJson(body));
   }
 
-  Future<GenericOkPost> postCreateOffer(Object body) async {
+  Future<OfertaBody> postCreateOffer(Object body) async {
     var response = await MyBaseClient().postCrearOferta(body);
     return response;
+  }
+
+  void chooseFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['png', 'pdf', 'jpg']
+    );
+
+    if (result != null) {
+      final file = result.files.first;
+      final fileSizeMB = file.size/(1000*1000);
+      print("MB: $fileSizeMB");
+
+      if (file.path != null && context.mounted) {
+        String? fileBase64 = Utils(context).getBase64File(file.path!);
+        if (fileBase64 != null) {
+          String fileExtension = "pdf";
+          if (file.extension == "png") {
+            fileExtension = file.extension!;
+          }
+          else if (file.extension == "jpeg" || file.extension == "jpg") {
+            fileExtension = file.extension!;
+          }
+          var response = await MyBaseClient().postUploadFile(3, "job", fileExtension, fileBase64);
+        }
+      }
+    } else {
+      // User canceled the picker
+    }
   }
 }

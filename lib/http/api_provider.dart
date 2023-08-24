@@ -27,6 +27,11 @@ class ApiProvider {
     'Accept': 'application/json',
   };
 
+  Map<String, String> fileHeaders = {
+    'Content-type': 'application/pdf',
+    'Accept': '*/*',
+  };
+
   Future<dynamic> get(String url) async {
     dynamic responseJson;
     try {
@@ -49,6 +54,10 @@ class ApiProvider {
       if (url.contains("login")) {
         response = await http.post(Uri.parse(_baseUrl + url),
             body: body, headers: loginHeaders).timeout(myTimeout);
+      }
+      else if (url.contains("file/upload")) {
+        response = await http.post(Uri.parse(_baseUrl + url),
+            body: body, headers: fileHeaders).timeout(myTimeout);
       }
       else {
         print("Headers: $baseHeaders");

@@ -26,6 +26,7 @@ abstract class BaseClient {
   Future getOfertaByID(int idOferta);
   Future putEditarEstudiante(int idStudent);
   Future putEditarCompanhia(int idCompany);
+  Future postUploadFile(int id, String type, String typeFile, String file);
 }
 
 class MyBaseClient extends BaseClient {
@@ -118,7 +119,7 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future postCrearOferta(Object body) async {
+  Future<OfertaBody> postCrearOferta(Object body) async {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       final response = await provider.post("/job/create/", body);
@@ -176,6 +177,24 @@ class MyBaseClient extends BaseClient {
       final response = await provider.get("/job/id/$idStudent/");
       String json = _myUT8JsonParser(response.bodyBytes);
       return ofertaBodyFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<int> postUploadFile(int id, String type, String typeFile,  String file) async {
+    try{
+      provider.fileHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      if (typeFile == "png") {
+
+      }
+      else if (typeFile == "jpeg") {
+
+      }
+      final response = await provider.post("/file/upload/?id=$id&type=$type", file);
+      return response;
     }
     catch(e) {
       throw Exception(e.toString());

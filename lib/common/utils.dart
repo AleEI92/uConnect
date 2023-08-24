@@ -1,4 +1,6 @@
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -58,34 +60,15 @@ class Utils {
     );
   }
 
-  /*Future<void> storeUserData(String userData) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setBool(Constants.estudiante, true);
-    prefs.setString("userData", userData);
-    if (userData.contains("company")) {
-      prefs.setBool(Constants.estudiante, false);
+  String? getBase64File(String path) {
+    try {
+      File file = File(path);
+      print('File is = $file');
+      List<int> fileInByte = file.readAsBytesSync();
+      return base64Encode(fileInByte);
     }
-  }
-
-  Future<dynamic> retrieveUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? temp = prefs.getString("userData");
-
-    if (temp != null) {
-      if (temp.contains("company")) {
-        return companyLoginResponseFromJson(temp);
-      }
-      else {
-        return studentLoginResponseFromJson(temp);
-      }
-    }
-    else {
+    catch(e) {
       return null;
     }
   }
-
-  Future<bool> userIsStudent() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(Constants.estudiante) ?? true;
-  }*/
 }
