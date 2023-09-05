@@ -1,8 +1,13 @@
 
 import 'package:flutter/material.dart';
+import 'package:u_connect/common/session.dart';
 
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
+import '../http/services.dart';
 import '../models/oferta_body.dart';
+import 'package:http/http.dart' as http;
+
 
 class JobDetail extends StatefulWidget {
   final OfertaBody offer;
@@ -14,8 +19,15 @@ class JobDetail extends StatefulWidget {
 
 class _JobDetailState extends State<JobDetail> {
 
+  late OfertaBody offer;
+  List<String> values = [];
+
   @override
   void initState() {
+    offer = widget.offer;
+    values.add(offer.jobType!);
+    values.add(offer.careerName!);
+    values.add(offer.cityName!);
     super.initState();
   }
 
@@ -27,11 +39,202 @@ class _JobDetailState extends State<JobDetail> {
       ),
       body: SafeArea(
           child: Container(
-              decoration: myAppBackground(),
-              width: double.maxFinite,
-              height: double.maxFinite,
-              constraints: const BoxConstraints.expand(),
-              child: Container(),
+            decoration: myAppBackground(),
+            width: double.maxFinite,
+            height: double.maxFinite,
+            constraints: const BoxConstraints.expand(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 8),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Card(
+                  shadowColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 8.0,
+                  color: Colors.cyan[200],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 32),
+                    child: Column(
+                      children: [
+                        // DESCRIPTION
+                        Container(
+                          width: double.maxFinite,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.cyan.withOpacity(0.8),
+                                spreadRadius: 4,
+                                blurRadius: 4,
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 4.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  offer.companyName!,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                ),
+                                const SizedBox(
+                                  height: 12.0,
+                                ),
+                                Text(
+                                    "${offer.description!}\n"
+                                ),
+                                if (offer.skills != null && offer.skills!.isNotEmpty) ... [
+                                  const Text(
+                                      "REQUISITOS:" + "\n",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: offer.skills!.length,
+                                    itemBuilder: (context, index) {
+                                      return Column(
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                  child: Text(
+                                                    "- ${offer.skills![index].skillName}."
+                                                        "\nExperiencia: ${"${offer.skills![index].experience} años."}",
+                                                  )
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10)
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        // MODALIDAD
+                        DropdownButtonFormField<String>(
+                            value: values[0],
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: values.map((value) {
+                              return DropdownMenuItem<String>(
+                                enabled: false,
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Modalidad',
+                                hintText: 'Seleccione modalidad de trabajo:'),
+                            onChanged: null
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        // CARRERA
+                        DropdownButtonFormField<String>(
+                            value: values[1],
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: values.map((value) {
+                              return DropdownMenuItem<String>(
+                                enabled: false,
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Carrera',
+                                hintText: 'Seleccione una carrera:'),
+                            onChanged: null
+                        ),
+                        const SizedBox(
+                          height: 20.0,
+                        ),
+                        // CIUDAD
+                        DropdownButtonFormField<String>(
+                            value: values[2],
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: values.map((value) {
+                              return DropdownMenuItem<String>(
+                                enabled: false,
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: 'Ciudad',
+                                hintText: 'Seleccione su ciudad:'),
+                            onChanged: null
+                        ),
+                        if (offer.fileId != null) ... [
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          InkWell(
+                            child: const Icon(Icons.file_present_rounded, size: 62),
+                            onTap: () async {
+                              // DOWNLOAD FILE FROM OFFER
+                              Utils(context).startLoading();
+                              var response = await MyBaseClient().getFile(offer.fileId!) as http.Response?;
+                              if (response != null && response.statusCode == 200) {
+                                if (context.mounted) {
+                                  Utils(context).getFileFromBinaryAndOpen(response);
+                                }
+                              }
+                              if (context.mounted) {
+                                Utils(context).stopLoading();
+                              }
+                            },
+                          ),
+                        ],
+                        const SizedBox(
+                          height: 50.0,
+                        ),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                            backgroundColor: MaterialStateProperty.all(Colors.white54),
+                          ),
+                          child: Text(
+                            Session.getInstance().isStudent
+                            ? 'APLICAR A OFERTA'
+                            : 'EDITAR OFERTA',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onPressed: () async {
+                            if (Session.getInstance().isStudent) {
+
+                            }
+                            else {
+
+                            }
+                            },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           )
       ),
     );

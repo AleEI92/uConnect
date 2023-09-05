@@ -1,5 +1,5 @@
 
-import 'dart:convert';
+import 'dart:io';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/common/session.dart';
 import 'package:u_connect/models/oferta_crear_body.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:http/http.dart' as http;
 
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
@@ -14,6 +15,7 @@ import '../http/services.dart';
 import '../models/carreras_response.dart';
 import '../models/oferta_body.dart';
 import '../models/skill_body.dart';
+import 'package:http_parser/http_parser.dart';
 
 
 class JobCreation extends StatefulWidget {
@@ -117,6 +119,7 @@ class _JobCreationState extends State<JobCreation> {
                       }).toList(),
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
+                          labelText: 'Modalidad',
                           hintText: 'Seleccione modalidad de trabajo:'),
                       onChanged: (value) {
                         _selectedModalidad = value.toString();
@@ -143,6 +146,7 @@ class _JobCreationState extends State<JobCreation> {
                       }).toList(),
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
+                          labelText: 'Carrera',
                           hintText: 'Seleccione una carrera:'),
                       onChanged: (value) {
                         _selectedCarrera = value.toString();
@@ -168,6 +172,7 @@ class _JobCreationState extends State<JobCreation> {
                       }).toList(),
                       decoration: const InputDecoration(
                           border: OutlineInputBorder(),
+                          labelText: 'Ciudad',
                           hintText: 'Seleccione su ciudad:'),
                       onChanged: (value) {
                         _selectedCiudad = value.toString();
@@ -214,28 +219,7 @@ class _JobCreationState extends State<JobCreation> {
                         ),
                       ),
                       onPressed: () async {
-                        AwesomeDialog(
-                            context: context,
-                            dismissOnTouchOutside: false,
-                            dismissOnBackKeyPress: false,
-                            dialogType: DialogType.success,
-                            headerAnimationLoop: false,
-                            animType: AnimType.bottomSlide,
-                            title: '¡Oferta creada exitosamente!',
-                            desc:
-                            '¿Desea adjuntar un archivo(.pdf o .png) a la oferta creada?',
-                            buttonsTextStyle:
-                            const TextStyle(color: Colors.black),
-                            showCloseIcon: false,
-                            btnCancelText: 'VOLVER',
-                            btnCancelOnPress: () {
-                              Navigator.of(context).pop(true);
-                            },
-                            btnOkText: 'CARGAR',
-                            btnOkOnPress: () async {
-                              chooseFile();
-                            }).show();
-                        /*Utils(context).startLoading();
+                        Utils(context).startLoading();
                         callOfferFunction().then((value) {
                           Utils(context).stopLoading();
                           AwesomeDialog(
@@ -247,7 +231,7 @@ class _JobCreationState extends State<JobCreation> {
                               animType: AnimType.bottomSlide,
                               title: '¡Oferta creada exitosamente!',
                               desc:
-                              'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(.pdf o .png) a la oferta creada?',
+                              'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(imagen o pdf) a la oferta creada?',
                               buttonsTextStyle:
                               const TextStyle(color: Colors.black),
                               showCloseIcon: false,
@@ -257,12 +241,12 @@ class _JobCreationState extends State<JobCreation> {
                               },
                               btnOkText: 'CARGAR',
                               btnOkOnPress: () {
-
+                                chooseFile(value.id);
                               }).show();
                         }).onError((error, stackTrace) {
                           Utils(context).stopLoading();
                           Utils(context).showErrorDialog(error.toString()).show();
-                        });*/
+                        });
                       },
                     ),
                   ],
@@ -278,24 +262,46 @@ class _JobCreationState extends State<JobCreation> {
   Widget loadSkill(int index, String descrip, String exp) {
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(child: Text("$descrip\nExperiencia: $exp")),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  listDescription.removeAt(index);
-                  listEXP.removeAt(index);
-                });
-              },
-              child: const Icon(
-                Icons.delete_rounded,
-                color: Colors.red,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.cyan.withOpacity(0.8),
+                spreadRadius: 4,
+                blurRadius: 4,
               ),
-            )
-          ],
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 8.0, vertical: 4.0),
+            child: Row(
+              children: [
+                Expanded(child: Text(
+                    "$descrip\nExperiencia: $exp años.",
+                  style: const TextStyle(
+                    fontSize: 16.0,
+                  ),
+                )),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      listDescription.removeAt(index);
+                      listEXP.removeAt(index);
+                    });
+                  },
+                  child: const Icon(
+                    Icons.delete_rounded,
+                    color: Colors.red,
+                  ),
+                )
+              ],
+            ),
+          ),
         ),
-        const SizedBox(height: 10)
+        const SizedBox(height: 8)
       ]
     );
   }
@@ -309,7 +315,7 @@ class _JobCreationState extends State<JobCreation> {
               controller: descriptionSkillControl,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Campo no puede estar vacio.';
+                  return 'Campo no puede estar vacío.';
                 }
                 return null;
               },
@@ -491,32 +497,68 @@ class _JobCreationState extends State<JobCreation> {
     return response;
   }
 
-  void chooseFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['png', 'pdf', 'jpg']
-    );
+  void chooseFile(int? id) async {
+    if (id != null) {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['png', 'pdf', 'jpg']
+      );
 
-    if (result != null) {
-      final file = result.files.first;
-      final fileSizeMB = file.size/(1000*1000);
-      print("MB: $fileSizeMB");
+      if (result != null) {
+        final file = result.files.first;
+        final fileSizeMB = file.size/(1000*1000);
+        print("MB: $fileSizeMB");
 
-      if (file.path != null && context.mounted) {
-        String? fileBase64 = Utils(context).getBase64File(file.path!);
-        if (fileBase64 != null) {
+        if (file.path != null && context.mounted) {
+          Utils(context).startLoading();
           String fileExtension = "pdf";
+          String type = "application";
           if (file.extension == "png") {
             fileExtension = file.extension!;
+            type = "image";
           }
           else if (file.extension == "jpeg" || file.extension == "jpg") {
             fileExtension = file.extension!;
+            type = "image";
           }
-          var response = await MyBaseClient().postUploadFile(3, "job", fileExtension, fileBase64);
+
+          final httpFile = http.MultipartFile.fromBytes(
+              'file',
+              File(file.path!).readAsBytesSync(),
+              contentType: MediaType(type, fileExtension),
+              filename: file.name
+          );
+          await MyBaseClient().postUploadFile(
+              id, "job",
+              fileExtension,
+              httpFile
+          ).then((value) {
+            Utils(context).stopLoading();
+            AwesomeDialog(
+                context: context,
+                dismissOnTouchOutside: false,
+                dismissOnBackKeyPress: false,
+                dialogType: DialogType.success,
+                headerAnimationLoop: false,
+                animType: AnimType.bottomSlide,
+                title: '¡Archivo subido exitosamente!',
+                desc:
+                'Se ha adjuntado un archivo a la oferta creada. Puede visualizarla en la sección de VER MIS OFERTAS.',
+                buttonsTextStyle:
+                const TextStyle(color: Colors.black),
+                showCloseIcon: false,
+                btnOkText: 'ACEPTAR',
+                btnOkOnPress: () {
+                  Navigator.of(context).pop(true);
+                }).show();
+          }).onError((error, stackTrace) {
+            Utils(context).stopLoading();
+            Utils(context).showErrorDialog(error.toString()).show();
+          });
         }
+      } else {
+        // User canceled the picker
       }
-    } else {
-      // User canceled the picker
     }
   }
 }

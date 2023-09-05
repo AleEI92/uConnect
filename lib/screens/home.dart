@@ -1,12 +1,18 @@
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/models/oferta_body.dart';
+import 'package:u_connect/models/skill_body.dart';
 import 'package:u_connect/screens/profile.dart';
 import 'package:u_connect/screens/view_jobs.dart';
 import '../common/session.dart';
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
+import '../http/services.dart';
 import 'job_creation.dart';
+import 'job_detail.dart';
 import 'login.dart';
+
 
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
@@ -17,14 +23,27 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
 
-  bool isStudentSession = false;
   late Session _session;
   final GlobalKey<ScaffoldState> _key = GlobalKey(); // Create a key
+  late Future<dynamic> data;
+  var _isLoading = true;
+
+  List<OfertaBody> ofertasAll = [];
+  List<OfertaBody> ofertasFiltered = [];
+  List<Widget> widgets = [];
+  String careerFilter = "";
 
   @override
   void initState() {
     super.initState();
     _session = Session.getInstance();
+    if (_session.isStudent) {
+      careerFilter = _session.userCareer;
+      Future.delayed(Duration.zero,() {
+        Utils(context).startLoading();
+      });
+      data = getAllOfertas();
+    }
   }
 
   @override
@@ -123,64 +142,204 @@ class _HomeState extends State<Home> {
             width: double.maxFinite,
             height: double.maxFinite,
             constraints: const BoxConstraints.expand(),
-            child: Column(
+            child: _session.isStudent
+            ? FutureBuilder<dynamic>(
+              future: data,
+              builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (_isLoading) {
+                    Utils(context).stopLoading();
+                    _isLoading = false;
+                  }
+                  // ERROR EN SERVICIO DE CARRERAS
+                  if (snapshot.hasError) {
+                    return myDialog();
+                  }
+                  // MOSTRAMOS FORMULARIOS
+                  else if (snapshot.hasData) {
+                    return LayoutBuilder(
+                      builder: (BuildContext context, BoxConstraints constraints) {
+                        ofertasAll.addAll(snapshot.data);
+                        for (var i = 0; i < ofertasAll.length; i++) {
+                          if (ofertasAll[i].careerName == careerFilter) {
+                            ofertasFiltered.add(ofertasAll[i]);
+                          }
+                        }
+                        for (var k = 0; k < ofertasFiltered.length; k++) {
+                          OfertaBody item = ofertasFiltered[k];
+                          widgets.add(
+                            SizedBox(
+                              width: constraints.maxWidth,
+                              height: constraints.maxHeight,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                    left: 16, right: 16, top: 16, bottom: constraints.maxHeight*0.25),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) =>
+                                                JobDetail(offer: item)));
+                                  },
+                                  child: Card(
+                                    shadowColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    elevation: 8.0,
+                                    color: Colors.cyan[200],
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16.0, vertical: 32),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.vertical,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            // DESCRIPTION
+                                            Padding(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 8.0, vertical: 4.0),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    item.companyName!,
+                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                                    maxLines: 1,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 12.0,
+                                                  ),
+                                                  Text(
+                                                    item.description!,
+                                                    maxLines: 3,
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                  /*if (item.skills != null && item.skills!.isNotEmpty) ... [
+                                                    const Text(
+                                                      "\n""REQUISITOS:" "\n",
+                                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                    loadUserSkills(item.skills!),
+                                                  ],*/
+                                                  const SizedBox(
+                                                    height: 12.0,
+                                                  ),
+                                                  Text('Fecha: '
+                                                      '${item.creationDate!.day}'
+                                                      '-${item.creationDate!.month}'
+                                                      '-${item.creationDate!.year}'),
+                                                  if (item.users != null && item.users!.isNotEmpty) ... [
+
+                                                  ],
+                                                  /*const SizedBox(
+                                                    height: 50.0,
+                                                  ),
+                                                  ElevatedButton(
+                                                    style: ButtonStyle(
+                                                      minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                                                      backgroundColor: MaterialStateProperty.all(Colors.white54),
+                                                    ),
+                                                    child: const Text(
+                                                      'APLICAR',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                    onPressed: () async {
+                                                      ScaffoldMessenger
+                                                          .of(context)
+                                                          .showSnackBar(const SnackBar(
+                                                          content: Text('Próximamente...')));
+                                                    },
+                                                  ),*/
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        return Container(
+                          alignment: Alignment.topCenter,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            physics: const PageScrollPhysics(), // this for snapping
+                            itemCount: widgets.length,
+                            itemBuilder: (_, index) => widgets[index],
+                          ),
+                        );
+                      },
+                    );
+                  }
+                  else {
+                    return Container();
+                  }
+                }
+                else {
+                  return Container();
+                }
+              },
+            )
+            : Column(
               children: [
-                // PANTALLA DE ESTUDIANTES
-                if (isStudentSession) ...[
-
-                ]
-
-                  // PANTALLA DE EMPRESAS
-                else ...[
-                  const SizedBox(
-                    height: 40.0,
+                const SizedBox(
+                  height: 40.0,
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                    backgroundColor: MaterialStateProperty.all(Colors.white54),
                   ),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                      backgroundColor: MaterialStateProperty.all(Colors.white54),
+                  child: const Text(
+                    'VER MIS OFERTAS',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    child: const Text(
-                      'VER MIS OFERTAS',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    onPressed: () async {
-                      //OfertaBody response = await MyBaseClient().getOfertasByID(Session.getInstance().userID);
-                      //print(response);
-                      Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                              const ViewJobs()));
-                    },
                   ),
-                  const SizedBox(
-                    height: 40.0,
+                  onPressed: () async {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                            const ViewJobs()));
+                  },
+                ),
+                const SizedBox(
+                  height: 40.0,
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                    backgroundColor: MaterialStateProperty.all(Colors.white54),
                   ),
-                  ElevatedButton(
-                    style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                      backgroundColor: MaterialStateProperty.all(Colors.white54),
+                  child: const Text(
+                    'CREAR OFERTA',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                    child: const Text(
-                      'CREAR OFERTA',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (BuildContext context) =>
-                              const JobCreation()));
-                    },
                   ),
-                ],
+                  onPressed: () {
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                            builder: (BuildContext context) =>
+                            const JobCreation()));
+                  },
+                ),
               ],
             ),
           ),
@@ -220,6 +379,111 @@ class _HomeState extends State<Home> {
     ).show();
 
     return false;
+  }
+
+  Widget loadUserSkills(List<Skill> skills) {
+    String resumenSkills = "";
+    for (var p = 0; p < skills.length; p++) {
+      resumenSkills =
+          "$resumenSkills- ${skills[p].skillName}.\nExperiencia: ${"${skills[p].experience} años."}" "\n\n";
+    }
+    return Text(resumenSkills);
+  }
+
+  Future<dynamic> getAllOfertas() async {
+    var response = await MyBaseClient().getAllOfertas();
+    return response;
+  }
+
+  Widget myDialog() {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)
+      ),
+      elevation: 8,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: MediaQuery.of(context).size.width *(2/3),
+        decoration: BoxDecoration(
+          color: Colors.cyan[300],
+          shape: BoxShape.rectangle,
+          borderRadius: const BorderRadius.all(Radius.circular(12)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.rectangle,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(12), topRight: Radius.circular(12))
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Icon(
+                  Icons.error_rounded,
+                  color: Colors.red,
+                  size: 60,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              // TITULO
+              child: Text(
+                'Oops.. Ha ocurrido un error.',
+                style: TextStyle(
+                    fontSize: 20,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              // DESCRIPCION
+              child: Text(
+                'Intente de nuevo por favor.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // BOTON SI
+                TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false);
+                    },
+                    style: const ButtonStyle(
+                      backgroundColor: MaterialStatePropertyAll(Colors.white),
+                    ),
+                    child: const Text(
+                      'ACEPTAR',
+                      style: TextStyle(
+                        color: Colors.cyan,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    )),
+              ],
+            ),
+            const SizedBox(
+              height: 18,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void closeSession() {

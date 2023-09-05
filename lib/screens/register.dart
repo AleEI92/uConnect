@@ -190,6 +190,7 @@ class _RegisterState extends State<Register> {
                 }).toList(),
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
+                    labelText: "Carrera",
                     hintText: 'Seleccione su carrera:'),
                 onChanged: (value) {
                   //setState(() {

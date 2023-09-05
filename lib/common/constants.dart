@@ -2,8 +2,8 @@
 import '../models/carreras_response.dart';
 
 class Constants {
-  static const String ipAle = "http://192.168.100.29:8000";
-  static const String baseURL = "$ipAle/uconnect/api";
+  static const String baseIP = "http://192.168.100.159";
+  static const String baseURL = "$baseIP/uconnect/api";
 
   ////////////////////////////////////////////////////////////////////////
   static const String disculpe = "Disculpe los inconvenientes.";

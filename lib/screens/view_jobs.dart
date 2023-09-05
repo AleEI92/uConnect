@@ -4,6 +4,7 @@ import 'package:u_connect/models/oferta_body.dart';
 import 'package:u_connect/screens/job_detail.dart';
 
 import '../common/session.dart';
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 
@@ -17,10 +18,14 @@ class ViewJobs extends StatefulWidget {
 class _ViewJobsState extends State<ViewJobs> {
 
   late Future<dynamic> data;
+  var _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration.zero,() {
+      Utils(context).startLoading();
+    });
     data = getOfertasByCompany();
   }
 
@@ -35,6 +40,10 @@ class _ViewJobsState extends State<ViewJobs> {
           future: data,
           builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
+              if (_isLoading) {
+                Utils(context).stopLoading();
+                _isLoading = false;
+              }
               // ERROR EN SERVICIO DE CARRERAS
               if (snapshot.hasError) {
                 return myDialog();
@@ -96,7 +105,7 @@ class _ViewJobsState extends State<ViewJobs> {
                               '${ofertas[index].creationDate!.day}'
                               '-${ofertas[index].creationDate!.month}'
                               '-${ofertas[index].creationDate!.year}'),
-                          const Text('Descripción: Ver más...',
+                          const Text('Descripción:  Ver más...',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -114,8 +123,6 @@ class _ViewJobsState extends State<ViewJobs> {
       ),
     );
   }
-
-
 
   Widget myDialog() {
     return Dialog(
@@ -211,22 +218,6 @@ class _ViewJobsState extends State<ViewJobs> {
   // SERVICIOS A EJECUTAR EN PANTALLA
   Future<dynamic> getOfertasByCompany() async {
     var response = await MyBaseClient().getOfertasByID(Session.getInstance().userID);
-    //var response = await MyBaseClient().getOfertaByID(10);
-    /*OfertaBody oferta = OfertaBody(
-      description: "Esta es una oferta de prueba!",
-      careerName: "Ing. Civil",
-      jobType: "Trabajo",
-      id: 0,
-      cityName: "Encarnayork",
-      active: true,
-      creationDate: DateTime.timestamp().toLocal(),
-      skills: [
-        Skill(skillName: "Kotlin", experience: "2"),
-        Skill(skillName: "Java", experience: "2")
-      ]
-    );
-    var listOfertas = [oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta, oferta];
-    var response = listOfertas;*/
     return response;
   }
 }

@@ -1,12 +1,15 @@
 
-import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:open_file/open_file.dart';
 
 import '../custom_widgets/my_awesome_dialog.dart';
 import '../models/dialog_body.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 
 class Utils {
 
@@ -60,15 +63,20 @@ class Utils {
     );
   }
 
-  String? getBase64File(String path) {
-    try {
-      File file = File(path);
-      print('File is = $file');
-      List<int> fileInByte = file.readAsBytesSync();
-      return base64Encode(fileInByte);
+  void getFileFromBinaryAndOpen(http.Response response) async {
+    List<String>? aux = response.headers['content-disposition']?.split("filename=");
+    if (aux != null) {
+      String filename = aux.last;
+      Uint8List imageInUnit8List = response.bodyBytes;
+      final tempDir = await getTemporaryDirectory();
+      File file = await File('${tempDir.path}/$filename').create();
+      file.writeAsBytesSync(imageInUnit8List);
+      if (file.existsSync()) {
+        OpenFile.open('${tempDir.path}/$filename');
+      }
     }
-    catch(e) {
-      return null;
+    else {
+      print("NO SE PUDO RECUPERAR EL NOMBRE ORIGINAL DEL ARCHIVO");
     }
   }
 }

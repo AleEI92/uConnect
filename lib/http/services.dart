@@ -24,9 +24,10 @@ abstract class BaseClient {
   Future postCrearOferta(Object body);
   Future getOfertasByID(int idCompany);
   Future getOfertaByID(int idOferta);
-  Future putEditarEstudiante(int idStudent);
-  Future putEditarCompanhia(int idCompany);
   Future postUploadFile(int id, String type, String typeFile, String file);
+  Future putUpdateUser(int id, Object body);
+  Future getAllOfertas();
+  Future getFile(int idOferta);
 }
 
 class MyBaseClient extends BaseClient {
@@ -158,42 +159,63 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future putEditarCompanhia(int idCompany) async {
-    try{
-      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
-      final response = await provider.get("/job/id/$idCompany/");
-      String json = _myUT8JsonParser(response.bodyBytes);
-      return ofertaBodyFromJson(json);
-    }
-    catch(e) {
-      throw Exception(e.toString());
-    }
-  }
-
-  @override
-  Future putEditarEstudiante(int idStudent) async {
-    try{
-      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
-      final response = await provider.get("/job/id/$idStudent/");
-      String json = _myUT8JsonParser(response.bodyBytes);
-      return ofertaBodyFromJson(json);
-    }
-    catch(e) {
-      throw Exception(e.toString());
-    }
-  }
-
-  @override
-  Future<int> postUploadFile(int id, String type, String typeFile,  String file) async {
+  Future<dynamic> postUploadFile(int id, String type, String typeFile, dynamic file) async {
     try{
       provider.fileHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       if (typeFile == "png") {
-
+        provider.fileHeaders['Content-type'] = "image/png";
       }
-      else if (typeFile == "jpeg") {
-
+      else if (typeFile == "jpeg" || typeFile == "jpg") {
+        provider.fileHeaders['Content-type'] = "image/jpeg";
       }
       final response = await provider.post("/file/upload/?id=$id&type=$type", file);
+      return response;
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future putUpdateUser(int id, Object body) async {
+    Session session = Session.getInstance();
+    try{
+      // /user/{user_id}/
+      provider.baseHeaders['Authorization'] =  bearer + session.userToken;
+      if (session.isStudent) {
+        final response = await provider.get("/user/$id/");
+        String json = _myUT8JsonParser(response.bodyBytes);
+        return ofertaBodyFromJson(json);
+      }
+      else {
+        final response = await provider.get("/company/$id/");
+        String json = _myUT8JsonParser(response.bodyBytes);
+        return ofertaBodyFromJson(json);
+      }
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<List<OfertaBody>> getAllOfertas() async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/job/all/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return misOfertasBodyFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future getFile(int idOferta) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/file/$idOferta/");
       return response;
     }
     catch(e) {

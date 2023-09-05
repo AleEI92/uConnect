@@ -49,7 +49,7 @@ class PasswordReset extends StatelessWidget {
               child: Column(
                 children: [
                   const SizedBox(height: 8),
-                  const Padding(
+                  /*const Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       'INGRESE SU CORREO',
@@ -61,7 +61,7 @@ class PasswordReset extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 20),*/
                   Form(
                     key: _formKey,
                     child: TextFormField(

@@ -25,6 +25,9 @@ class _ProfileState extends State<Profile> {
   final studentMailControl = TextEditingController();
   final studentNameControl = TextEditingController();
   final studentPhoneControl = TextEditingController();
+
+  final companyMailControl = TextEditingController();
+  final companyNameControl = TextEditingController();
   /////////////////////////////////////////////////////
 
   @override
@@ -165,9 +168,6 @@ class _ProfileState extends State<Profile> {
                   _selectedCarrera = value.toString();
                 },
               ),
-
-
-
               const SizedBox(
                 height: 50.0,
               ),
@@ -185,7 +185,10 @@ class _ProfileState extends State<Profile> {
                   ),
                 ),
                 onPressed: () async {
-
+                  ScaffoldMessenger
+                      .of(context)
+                      .showSnackBar(const SnackBar(
+                      content: Text('Próximamente...')));
                 },
               ),
             ],
@@ -196,13 +199,22 @@ class _ProfileState extends State<Profile> {
   }
 
   void setInitialValues() {
-    studentNameControl.text = _session.userName;
-    studentMailControl.text = _session.userEmail;
-    studentPhoneControl.text = _session.userPhoneNumber;
-    _selectedCarrera = _session.userCareer;
+    if (_session.isStudent) {
+      studentNameControl.text = _session.userName;
+      studentMailControl.text = _session.userEmail;
+      studentPhoneControl.text = _session.userPhoneNumber;
+      _selectedCarrera = _session.userCareer;
+    }
+    else {
+      companyNameControl.text = _session.userName;
+      companyMailControl.text = _session.userEmail;
+    }
   }
 
   Widget companyForm() {
+
+    setInitialValues();
+
     return Card(
       shadowColor: Colors.black,
       shape: RoundedRectangleBorder(
@@ -217,6 +229,7 @@ class _ProfileState extends State<Profile> {
           children: [
             // FULL NAME
             TextFormField(
+              controller: companyNameControl,
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Debe insertar un nombre para el registro.';
@@ -236,6 +249,7 @@ class _ProfileState extends State<Profile> {
             ),
             // USER EMAIL
             TextFormField(
+              controller: companyMailControl,
               keyboardType: TextInputType.text,
               style: const TextStyle(fontSize: 15.0),
               decoration: const InputDecoration(
@@ -244,7 +258,7 @@ class _ProfileState extends State<Profile> {
                   labelText: 'Correo',
                   hintText: 'Ingrese correo válido'),
             ),
-            const SizedBox(
+            /*const SizedBox(
               height: 20.0,
             ),
             // USER PHONE NUMBER
@@ -273,7 +287,7 @@ class _ProfileState extends State<Profile> {
                   border: OutlineInputBorder(),
                   labelText: 'Celular',
                   hintText: 'Ingrese su número de celular'),
-            ),
+            ),*/
             const SizedBox(
               height: 50.0,
             ),
@@ -291,7 +305,10 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
               onPressed: () async {
-
+                ScaffoldMessenger
+                    .of(context)
+                    .showSnackBar(const SnackBar(
+                    content: Text('Próximamente...')));
               },
             ),
           ],

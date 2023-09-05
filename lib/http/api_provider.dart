@@ -29,7 +29,7 @@ class ApiProvider {
 
   Map<String, String> fileHeaders = {
     'Content-type': 'application/pdf',
-    'Accept': '*/*',
+    'Accept': 'application/json',
   };
 
   Future<dynamic> get(String url) async {
@@ -56,8 +56,15 @@ class ApiProvider {
             body: body, headers: loginHeaders).timeout(myTimeout);
       }
       else if (url.contains("file/upload")) {
-        response = await http.post(Uri.parse(_baseUrl + url),
-            body: body, headers: fileHeaders).timeout(myTimeout);
+        print("Headers: $fileHeaders");
+        var request = http.MultipartRequest("POST", Uri.parse(_baseUrl + url))
+          ..headers.addAll(fileHeaders)
+          ..files.add(body as http.MultipartFile);
+
+        var streamResponse = await request.send();
+        response = await http.Response.fromStream(streamResponse);
+        /*response = await http.post(Uri.parse(_baseUrl + url),
+            body: body, headers: fileHeaders, encoding: null).timeout(myTimeout);*/
       }
       else {
         print("Headers: $baseHeaders");

@@ -58,7 +58,7 @@ class _LoginState extends State<Login> {
               physics: const BouncingScrollPhysics(),
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24),
+                    const EdgeInsets.symmetric(horizontal: 24.0, vertical: 0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

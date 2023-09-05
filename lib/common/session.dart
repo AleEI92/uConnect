@@ -38,11 +38,11 @@ class Session {
 
   void setSessionData(dynamic user) {
     if (user is StudentLoginResponse) {
-      userEmail = user.user.email;
-      userName = user.user.fullName;
-      userID = user.user.id;
-      userPhoneNumber = user.user.phoneNumber;
-      userCareer = user.user.careerName;
+      userEmail = user.user.email != null ? user.user.email! : "";
+      userName = user.user.fullName != null ? user.user.fullName! : "";
+      userID = user.user.id != null ? user.user.id! : -1;
+      userPhoneNumber = user.user.phoneNumber != null ? user.user.phoneNumber! : "";
+      userCareer = user.user.careerName != null ? user.user.careerName! : "";
       userToken = user.accessToken;
       fileId = user.user.fileId;
       isStudent = true;

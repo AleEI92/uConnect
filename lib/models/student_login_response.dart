@@ -29,11 +29,11 @@ class StudentLoginResponse {
 }
 
 class User {
-  String email;
-  String fullName;
-  int id;
-  String phoneNumber;
-  String careerName;
+  String? email;
+  String? fullName;
+  int? id;
+  String? phoneNumber;
+  String? careerName;
   int? fileId;
 
   User({
