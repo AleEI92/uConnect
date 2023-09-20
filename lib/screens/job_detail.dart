@@ -92,7 +92,7 @@ class _JobDetailState extends State<JobDetail> {
                                 ),
                                 if (offer.skills != null && offer.skills!.isNotEmpty) ... [
                                   const Text(
-                                      "REQUISITOS:" + "\n",
+                                      "REQUISITOS:" "\n",
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   ListView.builder(
@@ -183,10 +183,10 @@ class _JobDetailState extends State<JobDetail> {
                         ),
                         if (offer.fileId != null) ... [
                           const SizedBox(
-                            height: 20.0,
+                            height: 30.0,
                           ),
                           InkWell(
-                            child: const Icon(Icons.file_present_rounded, size: 62),
+                            child: const Icon(Icons.file_present_rounded, size: 56),
                             onTap: () async {
                               // DOWNLOAD FILE FROM OFFER
                               Utils(context).startLoading();
@@ -201,6 +201,9 @@ class _JobDetailState extends State<JobDetail> {
                               }
                             },
                           ),
+                          const Text(
+                            "Descargar archivo",
+                          ),
                         ],
                         const SizedBox(
                           height: 50.0,
@@ -208,7 +211,7 @@ class _JobDetailState extends State<JobDetail> {
                         ElevatedButton(
                           style: ButtonStyle(
                             minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                            backgroundColor: MaterialStateProperty.all(Colors.white54),
+                            backgroundColor: MaterialStateProperty.all(Colors.black45),
                           ),
                           child: Text(
                             Session.getInstance().isStudent

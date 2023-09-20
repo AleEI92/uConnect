@@ -29,16 +29,13 @@ class _HomeState extends State<Home> {
   var _isLoading = true;
 
   List<OfertaBody> ofertasAll = [];
-  List<OfertaBody> ofertasFiltered = [];
   List<Widget> widgets = [];
-  String careerFilter = "";
 
   @override
   void initState() {
     super.initState();
     _session = Session.getInstance();
     if (_session.isStudent) {
-      careerFilter = _session.userCareer;
       Future.delayed(Duration.zero,() {
         Utils(context).startLoading();
       });
@@ -151,7 +148,6 @@ class _HomeState extends State<Home> {
                     Utils(context).stopLoading();
                     _isLoading = false;
                   }
-                  // ERROR EN SERVICIO DE CARRERAS
                   if (snapshot.hasError) {
                     return myDialog();
                   }
@@ -160,13 +156,8 @@ class _HomeState extends State<Home> {
                     return LayoutBuilder(
                       builder: (BuildContext context, BoxConstraints constraints) {
                         ofertasAll.addAll(snapshot.data);
-                        for (var i = 0; i < ofertasAll.length; i++) {
-                          if (ofertasAll[i].careerName == careerFilter) {
-                            ofertasFiltered.add(ofertasAll[i]);
-                          }
-                        }
-                        for (var k = 0; k < ofertasFiltered.length; k++) {
-                          OfertaBody item = ofertasFiltered[k];
+                        for (var k = 0; k < ofertasAll.length; k++) {
+                          OfertaBody item = ofertasAll[k];
                           widgets.add(
                             SizedBox(
                               width: constraints.maxWidth,
@@ -235,29 +226,6 @@ class _HomeState extends State<Home> {
                                                   if (item.users != null && item.users!.isNotEmpty) ... [
 
                                                   ],
-                                                  /*const SizedBox(
-                                                    height: 50.0,
-                                                  ),
-                                                  ElevatedButton(
-                                                    style: ButtonStyle(
-                                                      minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                                                      backgroundColor: MaterialStateProperty.all(Colors.white54),
-                                                    ),
-                                                    child: const Text(
-                                                      'APLICAR',
-                                                      style: TextStyle(
-                                                        fontSize: 16,
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                    onPressed: () async {
-                                                      ScaffoldMessenger
-                                                          .of(context)
-                                                          .showSnackBar(const SnackBar(
-                                                          content: Text('Próximamente...')));
-                                                    },
-                                                  ),*/
                                                 ],
                                               ),
                                             ),
@@ -300,7 +268,7 @@ class _HomeState extends State<Home> {
                 ElevatedButton(
                   style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                    backgroundColor: MaterialStateProperty.all(Colors.white54),
+                    backgroundColor: MaterialStateProperty.all(Colors.black45),
                   ),
                   child: const Text(
                     'VER MIS OFERTAS',
@@ -323,7 +291,7 @@ class _HomeState extends State<Home> {
                 ElevatedButton(
                   style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                    backgroundColor: MaterialStateProperty.all(Colors.white54),
+                    backgroundColor: MaterialStateProperty.all(Colors.black45),
                   ),
                   child: const Text(
                     'CREAR OFERTA',
@@ -391,7 +359,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<dynamic> getAllOfertas() async {
-    var response = await MyBaseClient().getAllOfertas();
+    var response = await MyBaseClient().getAllOfertas(getCareerID(), null);
     return response;
   }
 
@@ -462,7 +430,7 @@ class _HomeState extends State<Home> {
                 // BOTON SI
                 TextButton(
                     onPressed: () {
-                      Navigator.of(context).pop(false);
+                      Navigator.of(context, rootNavigator: false).pop();
                     },
                     style: const ButtonStyle(
                       backgroundColor: MaterialStatePropertyAll(Colors.white),
@@ -484,6 +452,15 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  int? getCareerID() {
+    for (var i = 0; i < _session.allCarreras!.length; i++) {
+      if (_session.userCareer == _session.allCarreras![i].name) {
+        return (i + 1);
+      }
+    }
+    return null;
   }
 
   void closeSession() {

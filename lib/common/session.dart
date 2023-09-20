@@ -50,7 +50,7 @@ class Session {
     else {
       userEmail = (user as CompanyLoginResponse).company.email;
       userName = user.company.name;
-      userID = user.company.id;
+      userID = user.company.id != null ? user.company.id! : -1;
       userToken = user.accessToken;
       isStudent = false;
     }

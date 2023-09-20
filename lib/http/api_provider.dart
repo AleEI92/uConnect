@@ -1,5 +1,4 @@
 
-
 import 'package:http/http.dart' as http;
 import 'package:u_connect/common/constants.dart';
 import 'dart:io';
@@ -71,6 +70,20 @@ class ApiProvider {
         response = await http.post(Uri.parse(_baseUrl + url),
             body: body, headers: baseHeaders).timeout(myTimeout);
       }
+      responseJson = _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> put(String url, Object body) async {
+    dynamic responseJson;
+    try {
+      print("PUT: ${(_baseUrl + url)}");
+      print("Headers: $baseHeaders");
+      final response = await http.put(Uri.parse(_baseUrl + url),
+          body: body, headers: baseHeaders).timeout(myTimeout);
       responseJson = _response(response);
     } on SocketException {
       throw FetchDataException('No Internet connection');

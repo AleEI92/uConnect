@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:u_connect/models/skill_body.dart';
+
 StudentLoginResponse studentLoginResponseFromJson(String str) => StudentLoginResponse.fromJson(json.decode(str));
 
 String studentLoginResponseToJson(StudentLoginResponse data) => json.encode(data.toJson());
@@ -28,6 +30,10 @@ class StudentLoginResponse {
   };
 }
 
+User userFromJson(String str) => User.fromJson(json.decode(str));
+
+String userToJson(User data) => json.encode(data.toJson());
+
 class User {
   String? email;
   String? fullName;
@@ -35,6 +41,7 @@ class User {
   String? phoneNumber;
   String? careerName;
   int? fileId;
+  List<Skill>? skills;
 
   User({
     required this.email,
@@ -42,7 +49,8 @@ class User {
     required this.id,
     required this.phoneNumber,
     required this.careerName,
-    this.fileId
+    this.fileId,
+    this.skills
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -51,7 +59,8 @@ class User {
     id: json["id"],
     phoneNumber: json["phone_number"],
     careerName: json["career_name"],
-    fileId: json["file_id"]
+    fileId: json["file_id"],
+    skills: json["skills"] != null ? List<Skill>.from(json["skills"].map((x) => Skill.fromJson(x))) : null,
   );
 
   Map<String, dynamic> toJson() => {
@@ -61,5 +70,6 @@ class User {
     "phone_number": phoneNumber,
     "career_name": careerName,
     "file_id": fileId,
+    "skills": skills != null ? List<dynamic>.from(skills!.map((x) => x.toJson())) : null,
   };
 }

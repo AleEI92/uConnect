@@ -81,7 +81,7 @@ class PasswordReset extends StatelessWidget {
                   ElevatedButton(
                     style: ButtonStyle(
                       minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                      backgroundColor: MaterialStateProperty.all(Colors.white54),
+                      backgroundColor: MaterialStateProperty.all(Colors.black45),
                     ),
                     child: const Text(
                       'RECUPERAR CONTRASEÑA',

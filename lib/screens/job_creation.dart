@@ -208,7 +208,7 @@ class _JobCreationState extends State<JobCreation> {
                     ElevatedButton(
                       style: ButtonStyle(
                         minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                        backgroundColor: MaterialStateProperty.all(Colors.white54),
+                        backgroundColor: MaterialStateProperty.all(Colors.black45),
                       ),
                       child: const Text(
                         'CREAR OFERTA',
@@ -529,7 +529,7 @@ class _JobCreationState extends State<JobCreation> {
               filename: file.name
           );
           await MyBaseClient().postUploadFile(
-              id, "job",
+              id, Constants.job,
               fileExtension,
               httpFile
           ).then((value) {

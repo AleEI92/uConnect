@@ -1,10 +1,21 @@
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/models/carreras_response.dart';
+import 'package:u_connect/models/editar_company_body.dart';
+import 'package:u_connect/models/editar_user_body.dart';
+import 'package:http/http.dart' as http;
+import 'dart:io';
 
+import '../common/constants.dart';
 import '../common/session.dart';
+import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
+import '../http/services.dart';
+import '../models/student_login_response.dart';
+import 'package:http_parser/http_parser.dart';
 
 
 class Profile extends StatefulWidget {
@@ -58,6 +69,19 @@ class _ProfileState extends State<Profile> {
         ),
       )),
     );
+  }
+
+  void setInitialValues() {
+    if (_session.isStudent) {
+      studentNameControl.text = _session.userName;
+      studentMailControl.text = _session.userEmail;
+      studentPhoneControl.text = _session.userPhoneNumber;
+      _selectedCarrera = _session.userCareer;
+    }
+    else {
+      companyNameControl.text = _session.userName;
+      companyMailControl.text = _session.userEmail;
+    }
   }
 
   Widget studentForm(List<Carrera> carreras) {
@@ -128,7 +152,7 @@ class _ProfileState extends State<Profile> {
                       !value.startsWith('096')) {
                     return 'Formato de número de celular incorrecto.';
                   }
-                  else if (value.length < 10) {
+                  else if (value.length != 10) {
                     return 'El campo debe tener 10 números exactos.';
                   }
                   return null;
@@ -169,12 +193,24 @@ class _ProfileState extends State<Profile> {
                 },
               ),
               const SizedBox(
+                height: 30.0,
+              ),
+              InkWell(
+                child: const Icon(Icons.file_present_rounded, size: 56),
+                onTap: () async {
+                  chooseFile(_session.userID, _session.isStudent);
+                },
+              ),
+              const Text(
+                "Cargar archivo",
+              ),
+              const SizedBox(
                 height: 50.0,
               ),
               ElevatedButton(
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                  backgroundColor: MaterialStateProperty.all(Colors.white54),
+                  backgroundColor: MaterialStateProperty.all(Colors.black45),
                 ),
                 child: const Text(
                   'ACTUALIZAR',
@@ -185,10 +221,41 @@ class _ProfileState extends State<Profile> {
                   ),
                 ),
                 onPressed: () async {
-                  ScaffoldMessenger
-                      .of(context)
-                      .showSnackBar(const SnackBar(
-                      content: Text('Próximamente...')));
+                  if (_studentFormKey.currentState!.validate()) {
+                    Utils(context).startLoading();
+                    var body = EditarUserBody(fullName: studentNameControl.value.text,
+                        email: studentMailControl.value.text,
+                        phoneNumber: studentPhoneControl.value.text,
+                        career: _selectedCarrera);
+
+                    await MyBaseClient().putUpdateUser(
+                        _session.userID, editarUserBodyToJson(body))
+                    .then((value) {
+                      if (context.mounted) { Utils(context).stopLoading();}
+                      if (value != null && value is User) {
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Actualización exitosa!',
+                            desc:
+                            'Se ha editado sus datos correctamente.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: 'ACEPTAR',
+                            btnOkOnPress: () {
+                              Navigator.of(context).pop(true);
+                            }).show();
+                      }
+                    }).onError((error, stackTrace) {
+                      if (context.mounted) { Utils(context).stopLoading();}
+                      Utils(context).showErrorDialog(error.toString()).show();
+                    });
+                  }
                 },
               ),
             ],
@@ -198,21 +265,7 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  void setInitialValues() {
-    if (_session.isStudent) {
-      studentNameControl.text = _session.userName;
-      studentMailControl.text = _session.userEmail;
-      studentPhoneControl.text = _session.userPhoneNumber;
-      _selectedCarrera = _session.userCareer;
-    }
-    else {
-      companyNameControl.text = _session.userName;
-      companyMailControl.text = _session.userEmail;
-    }
-  }
-
   Widget companyForm() {
-
     setInitialValues();
 
     return Card(
@@ -258,43 +311,13 @@ class _ProfileState extends State<Profile> {
                   labelText: 'Correo',
                   hintText: 'Ingrese correo válido'),
             ),
-            /*const SizedBox(
-              height: 20.0,
-            ),
-            // USER PHONE NUMBER
-            TextFormField(
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Debe insertar un número de celular.';
-                }
-                else if (!value.startsWith('099') &&
-                    !value.startsWith('098') &&
-                    !value.startsWith('097') &&
-                    !value.startsWith('096')) {
-                  return 'Formato de número de celular incorrecto.';
-                }
-                else if (value.length < 10) {
-                  return 'El campo debe tener 10 números exactos.';
-                }
-                return null;
-              },
-              maxLength: 10,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(fontSize: 15.0),
-              decoration: const InputDecoration(
-                  counterText: '',
-                  prefixIcon: Icon(Icons.phone_android_rounded),
-                  border: OutlineInputBorder(),
-                  labelText: 'Celular',
-                  hintText: 'Ingrese su número de celular'),
-            ),*/
             const SizedBox(
               height: 50.0,
             ),
             ElevatedButton(
               style: ButtonStyle(
                 minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                backgroundColor: MaterialStateProperty.all(Colors.white54),
+                backgroundColor: MaterialStateProperty.all(Colors.black45),
               ),
               child: const Text(
                 'ACTUALIZAR',
@@ -305,16 +328,103 @@ class _ProfileState extends State<Profile> {
                 ),
               ),
               onPressed: () async {
-                ScaffoldMessenger
-                    .of(context)
-                    .showSnackBar(const SnackBar(
-                    content: Text('Próximamente...')));
+                if (companyNameControl.value.text.isNotEmpty &&
+                    companyMailControl.value.text.isNotEmpty) {
+                  Utils(context).startLoading();
+                  var body = EditarEmpresaBody(name: companyNameControl.value.text,
+                      email: companyMailControl.value.text);
+
+                  await MyBaseClient().putUpdateUser(
+                      _session.userID, editarEmpresaBodyToJson(body))
+                      .then((value) {
+                    if (context.mounted) { Utils(context).stopLoading();}
+                    if (value != null && value is EditarEmpresaBody) {
+                      AwesomeDialog(
+                          context: context,
+                          dismissOnTouchOutside: false,
+                          dismissOnBackKeyPress: false,
+                          dialogType: DialogType.success,
+                          headerAnimationLoop: false,
+                          animType: AnimType.bottomSlide,
+                          title: '¡Actualización exitosa!',
+                          desc:
+                          'Se ha editado sus datos correctamente.',
+                          buttonsTextStyle:
+                          const TextStyle(color: Colors.black),
+                          showCloseIcon: false,
+                          btnOkText: 'ACEPTAR',
+                          btnOkOnPress: () {
+                            Navigator.of(context).pop(true);
+                          }).show();
+                    }
+                  }).onError((error, stackTrace) {
+                    if (context.mounted) { Utils(context).stopLoading();}
+                    Utils(context).showErrorDialog(error.toString()).show();
+                  });
+                }
               },
             ),
           ],
         ),
       ),
     );
+  }
+
+  void chooseFile(int id, bool isStudent) async {
+    String userType = Constants.company;
+    if (isStudent) {
+      userType = Constants.user;
+    }
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf']
+    );
+
+    if (result != null) {
+      final file = result.files.first;
+      final fileSizeMB = file.size/(1000*1000);
+      print("MB: $fileSizeMB");
+
+      if (file.path != null && context.mounted) {
+        Utils(context).startLoading();
+        String fileExtension = "pdf";
+        String type = "application";
+
+        final httpFile = http.MultipartFile.fromBytes(
+            'file',
+            File(file.path!).readAsBytesSync(),
+            contentType: MediaType(type, fileExtension),
+            filename: file.name
+        );
+        await MyBaseClient().postUploadFile(
+            id, userType,
+            fileExtension,
+            httpFile
+        ).then((value) {
+          Utils(context).stopLoading();
+          AwesomeDialog(
+              context: context,
+              dismissOnTouchOutside: false,
+              dismissOnBackKeyPress: false,
+              dialogType: DialogType.success,
+              headerAnimationLoop: false,
+              animType: AnimType.bottomSlide,
+              title: '¡Archivo subido exitosamente!',
+              desc:
+              'Se ha adjuntado un pdf a su usuario.',
+              buttonsTextStyle:
+              const TextStyle(color: Colors.black),
+              showCloseIcon: false,
+              btnOkText: 'ACEPTAR',
+              btnOkOnPress: () {}).show();
+        }).onError((error, stackTrace) {
+          Utils(context).stopLoading();
+          Utils(context).showErrorDialog(error.toString()).show();
+        });
+      }
+    } else {
+      // User canceled the picker
+    }
   }
 
   String? mailValidation(String? value) {

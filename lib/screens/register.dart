@@ -156,7 +156,7 @@ class _RegisterState extends State<Register> {
                       !value.startsWith('096')) {
                     return 'Formato de número de celular incorrecto.';
                   }
-                  else if (value.length < 10) {
+                  else if (value.length != 10) {
                     return 'El campo debe tener 10 números exactos.';
                   }
                   return null;
@@ -267,7 +267,7 @@ class _RegisterState extends State<Register> {
               ElevatedButton(
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                  backgroundColor: MaterialStateProperty.all(Colors.white54),
+                  backgroundColor: MaterialStateProperty.all(Colors.black45),
                 ),
                 child: const Text(
                   'REGISTRAR',
@@ -448,7 +448,7 @@ class _RegisterState extends State<Register> {
               ElevatedButton(
                 style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                  backgroundColor: MaterialStateProperty.all(Colors.white54),
+                  backgroundColor: MaterialStateProperty.all(Colors.black45),
                 ),
                 child: const Text(
                   'REGISTRAR',
