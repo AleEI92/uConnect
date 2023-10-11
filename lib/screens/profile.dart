@@ -4,6 +4,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/models/carreras_response.dart';
+import 'package:u_connect/models/company_login_response.dart';
 import 'package:u_connect/models/editar_company_body.dart';
 import 'package:u_connect/models/editar_user_body.dart';
 import 'package:http/http.dart' as http;
@@ -16,6 +17,8 @@ import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 import '../models/student_login_response.dart';
 import 'package:http_parser/http_parser.dart';
+
+import 'home.dart';
 
 
 class Profile extends StatefulWidget {
@@ -233,6 +236,12 @@ class _ProfileState extends State<Profile> {
                     .then((value) {
                       if (context.mounted) { Utils(context).stopLoading();}
                       if (value != null && value is User) {
+                        _session.setSessionData(
+                            StudentLoginResponse(
+                                user: value,
+                                accessToken: _session.userToken
+                            )
+                        );
                         AwesomeDialog(
                             context: context,
                             dismissOnTouchOutside: false,
@@ -248,7 +257,9 @@ class _ProfileState extends State<Profile> {
                             showCloseIcon: false,
                             btnOkText: 'ACEPTAR',
                             btnOkOnPress: () {
-                              Navigator.of(context).pop(true);
+                              //Navigator.of(context).pop(true);
+                              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                  builder: (context) => const Home()), (Route route) => false);
                             }).show();
                       }
                     }).onError((error, stackTrace) {
@@ -339,6 +350,13 @@ class _ProfileState extends State<Profile> {
                       .then((value) {
                     if (context.mounted) { Utils(context).stopLoading();}
                     if (value != null && value is EditarEmpresaBody) {
+                      _session.setSessionData(
+                          CompanyLoginResponse(
+                              company: Company(id: _session.userID,
+                                  email: value.email, name: value.name),
+                              accessToken: _session.userToken
+                          )
+                      );
                       AwesomeDialog(
                           context: context,
                           dismissOnTouchOutside: false,
@@ -354,7 +372,8 @@ class _ProfileState extends State<Profile> {
                           showCloseIcon: false,
                           btnOkText: 'ACEPTAR',
                           btnOkOnPress: () {
-                            Navigator.of(context).pop(true);
+                            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                builder: (context) => const Home()), (Route route) => false);
                           }).show();
                     }
                   }).onError((error, stackTrace) {

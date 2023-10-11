@@ -3,6 +3,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/models/oferta_body.dart';
 import 'package:u_connect/models/skill_body.dart';
+import 'package:u_connect/screens/password_change_reset.dart';
 import 'package:u_connect/screens/profile.dart';
 import 'package:u_connect/screens/view_jobs.dart';
 import '../common/session.dart';
@@ -96,6 +97,18 @@ class _HomeState extends State<Home> {
               ),
               const Divider(thickness: 2),
               ListTile(
+                leading: const Icon(Icons.password_rounded),
+                title: const Text(
+                    'Cambiar contraseña',
+                    style: TextStyle(fontSize: 14)
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _changePassword();
+                },
+              ),
+              const Divider(thickness: 2),
+              ListTile(
                 leading: const Icon(Icons.info_rounded),
                 title: const Text(
                     'Información',
@@ -103,9 +116,10 @@ class _HomeState extends State<Home> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
+                  var snackBar = const SnackBar(content: Text('Próximamente...'));
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 },
               ),
-              const Divider(thickness: 2),
             ],
           ),
         ),
@@ -164,7 +178,7 @@ class _HomeState extends State<Home> {
                               height: constraints.maxHeight,
                               child: Padding(
                                 padding: EdgeInsets.only(
-                                    left: 16, right: 16, top: 16, bottom: constraints.maxHeight*0.25),
+                                    left: 16, right: 16, top: 16, bottom: constraints.maxHeight*0.5),
                                 child: InkWell(
                                   onTap: () {
                                     Navigator.of(context).push(
@@ -470,5 +484,14 @@ class _HomeState extends State<Home> {
             builder: (BuildContext
             context) =>
             const Login()));
+  }
+
+  Future<bool> _changePassword() async {
+    return await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => PasswordChangeReset(isRecovering: false),
+    ) ??
+        false;
   }
 }

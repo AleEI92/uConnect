@@ -3,7 +3,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:u_connect/common/session.dart';
-import 'package:u_connect/screens/password_reset.dart';
+import 'package:u_connect/screens/password_change_reset.dart';
 import 'package:u_connect/screens/register.dart';
 import '../common/constants.dart';
 import '../common/utils.dart';
@@ -109,7 +109,7 @@ class _LoginState extends State<Login> {
                                   return null;
                                 },
                                 maxLines: 1,
-                                maxLength: 8,
+                                maxLength: 16,
                                 keyboardType: TextInputType.visiblePassword,
                                 obscureText: true,
                                 style: const TextStyle(
@@ -288,7 +288,7 @@ class _LoginState extends State<Login> {
     return await showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (context) => PasswordReset(),
+      builder: (context) => PasswordChangeReset(isRecovering: true),
     ) ??
         false;
   }

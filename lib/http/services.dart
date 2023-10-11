@@ -7,8 +7,6 @@ import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/editar_company_body.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
 import 'package:u_connect/models/company_login_response.dart';
-import 'package:u_connect/models/recover_pass_body.dart';
-
 import '../models/oferta_body.dart';
 import '../models/student_login_response.dart';
 
@@ -21,6 +19,7 @@ abstract class BaseClient {
   Future postRegistrarCompanhia(Object body);
   Future postLogin(Object body);
   Future postRecuperarPassword(Object body);
+  Future putChangePassword(Object body, int id, String type);
   Future getCiudades();
   Future postCrearOferta(Object body);
   Future getOfertasByID(int idCompany);
@@ -101,7 +100,19 @@ class MyBaseClient extends BaseClient {
     try{
       final response = await provider.post("/user/recover-password/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
-      return recoverPasswordBodyFromJson(json);
+      return genericOkPostFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future putChangePassword(Object body, int id, String type) async {
+    try{
+      final response = await provider.put("/change-password/?id=$id&type=$type", body);
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
     }
     catch(e) {
       throw Exception(e.toString());

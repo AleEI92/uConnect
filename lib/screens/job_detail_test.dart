@@ -18,14 +18,15 @@ import '../models/skill_body.dart';
 import 'package:http_parser/http_parser.dart';
 
 
-class JobCreation extends StatefulWidget {
-  const JobCreation({super.key});
+class JobDetailTest extends StatefulWidget {
+  final OfertaBody offer;
+  const JobDetailTest({Key? key, required this.offer}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => _JobCreationState();
+  State<StatefulWidget> createState() => JobDetailTestState();
 }
 
-class _JobCreationState extends State<JobCreation> {
+class JobDetailTestState extends State<JobDetailTest> {
   final _formKey = GlobalKey<FormState>();
   List<Carrera> _listCarreras = [];
   List<Carrera> _listCiudades = [];
@@ -40,17 +41,24 @@ class _JobCreationState extends State<JobCreation> {
   final List<String> listEXP = [""];
   String _selectedExperience = '';
 
+  late OfertaBody offer;
+  List<String> values = [];
+
   @override
   void initState() {
-    super.initState();
     loadCiudadesYCarreras();
+    offer = widget.offer;
+    values.add(offer.jobType!);
+    values.add(offer.careerName!);
+    values.add(offer.cityName!);
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Oferta'),
+        title: const Text('Detalle Oferta'),
       ),
       body: SafeArea(
         child: showForm(),
@@ -193,9 +201,9 @@ class _JobCreationState extends State<JobCreation> {
                           children: [
                             index > 0
                                 ? loadSkill(
-                                    index,
-                                    listDescription[index].toString(),
-                                    listEXP[index].toString())
+                                index,
+                                listDescription[index].toString(),
+                                listEXP[index].toString())
                                 : const SizedBox()
                           ],
                         );
@@ -211,7 +219,7 @@ class _JobCreationState extends State<JobCreation> {
                         backgroundColor: MaterialStateProperty.all(Colors.black45),
                       ),
                       child: const Text(
-                        'CREAR OFERTA',
+                        'EDITAR OFERTA',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -219,34 +227,7 @@ class _JobCreationState extends State<JobCreation> {
                         ),
                       ),
                       onPressed: () async {
-                        Utils(context).startLoading();
-                        callOfferFunction().then((value) {
-                          Utils(context).stopLoading();
-                          AwesomeDialog(
-                              context: context,
-                              dismissOnTouchOutside: false,
-                              dismissOnBackKeyPress: false,
-                              dialogType: DialogType.success,
-                              headerAnimationLoop: false,
-                              animType: AnimType.bottomSlide,
-                              title: '¡Oferta creada exitosamente!',
-                              desc:
-                              'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(imagen o pdf) a la oferta creada?',
-                              buttonsTextStyle:
-                              const TextStyle(color: Colors.black),
-                              showCloseIcon: false,
-                              btnCancelText: 'VOLVER',
-                              btnCancelOnPress: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              btnOkText: 'CARGAR',
-                              btnOkOnPress: () {
-                                chooseFile(value.id);
-                              }).show();
-                        }).onError((error, stackTrace) {
-                          Utils(context).stopLoading();
-                          Utils(context).showErrorDialog(error.toString()).show();
-                        });
+
                       },
                     ),
                   ],
@@ -261,49 +242,49 @@ class _JobCreationState extends State<JobCreation> {
 
   Widget loadSkill(int index, String descrip, String exp) {
     return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.cyan[200],
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black54.withOpacity(0.7),
-                spreadRadius: 1,
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(child: Text(
-                    "$descrip\nExperiencia: $exp años.",
-                  style: TextStyle(
-                    color: Colors.black54.withOpacity(0.7),
-                    fontSize: 16.0,
-                  ),
-                )),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      listDescription.removeAt(index);
-                      listEXP.removeAt(index);
-                    });
-                  },
-                  child: const Icon(
-                    Icons.delete_rounded,
-                    color: Colors.red,
-                  ),
-                )
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.cyan[200],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black54.withOpacity(0.7),
+                  spreadRadius: 1,
+                  blurRadius: 2,
+                ),
               ],
             ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(child: Text(
+                    "$descrip\nExperiencia: $exp años.",
+                    style: TextStyle(
+                      color: Colors.black54.withOpacity(0.7),
+                      fontSize: 16.0,
+                    ),
+                  )),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        listDescription.removeAt(index);
+                        listEXP.removeAt(index);
+                      });
+                    },
+                    child: const Icon(
+                      Icons.delete_rounded,
+                      color: Colors.red,
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 8)
-      ]
+          const SizedBox(height: 8)
+        ]
     );
   }
 
@@ -323,7 +304,7 @@ class _JobCreationState extends State<JobCreation> {
               style: const TextStyle(fontSize: 15.0),
               decoration: const InputDecoration(
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 23.0, horizontal: 12.0),
+                  EdgeInsets.symmetric(vertical: 23.0, horizontal: 12.0),
                   border: OutlineInputBorder(),
                   labelText: 'Habilidad',
                   hintText: 'Ingrese una habilidad'),

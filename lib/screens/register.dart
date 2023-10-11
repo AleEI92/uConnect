@@ -9,6 +9,7 @@ import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
 import 'package:u_connect/models/registro_company_body.dart';
 import 'package:u_connect/models/registro_estudiante_body.dart';
+import '../common/constants.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 
@@ -21,7 +22,7 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final int minPassInput = 8;
-  final int maxPassInput = 12;
+  final int maxPassInput = 16;
   String password = '';
   var _isLoading = true;
 
@@ -207,6 +208,7 @@ class _RegisterState extends State<Register> {
                 validator: (value) {
                   return passwordValidation(value);
                 },
+                maxLines: 1,
                 maxLength: maxPassInput,
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: _passHide,
@@ -238,6 +240,7 @@ class _RegisterState extends State<Register> {
                 validator: (value) {
                   return passwordConfirmValidation(value);
                 },
+                maxLines: 1,
                 maxLength: maxPassInput,
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: _passConfirmHide,
@@ -388,6 +391,7 @@ class _RegisterState extends State<Register> {
                 validator: (value) {
                   return passwordValidation(value);
                 },
+                maxLines: 1,
                 maxLength: maxPassInput,
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: _passHide,
@@ -419,6 +423,7 @@ class _RegisterState extends State<Register> {
                 validator: (value) {
                   return passwordConfirmValidation(value);
                 },
+                maxLines: 1,
                 maxLength: maxPassInput,
                 keyboardType: TextInputType.visiblePassword,
                 obscureText: _passConfirmHide,
@@ -497,6 +502,11 @@ class _RegisterState extends State<Register> {
   }
 
   Widget showForms(AsyncSnapshot<dynamic> snapshot, BuildContext context) {
+    List<Carrera> listCarreras = snapshot.data as List<Carrera>;
+    if (listCarreras.isEmpty) {
+      _isStudentForm = false;
+      _selectedShadowButton = false;
+    }
     return Container(
       decoration: myAppBackground(),
       width: double.maxFinite,
@@ -533,11 +543,16 @@ class _RegisterState extends State<Register> {
                         ),
                       ),
                       onPressed: () {
-                        if (!_isStudentForm) {
-                          setState(() {
-                            _isStudentForm = true;
-                            _selectedShadowButton = true;
-                          });
+                        if (listCarreras.isNotEmpty) {
+                          if (!_isStudentForm) {
+                            setState(() {
+                              _isStudentForm = true;
+                              _selectedShadowButton = true;
+                            });
+                          }
+                        }
+                        else {
+                          Utils(context).showErrorDialog("No se ha podido recuperar las carreras disponibles.\n${Constants.disculpe}").show();
                         }
                       },
                     ),
@@ -585,7 +600,7 @@ class _RegisterState extends State<Register> {
                   horizontal: 8.0, vertical: 8),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: _isStudentForm ? studentForm(snapshot.data as List<Carrera>, context) : companyForm(),
+                child: _isStudentForm ? studentForm(listCarreras, context) : companyForm(),
               ),
             ),
           ),
@@ -741,8 +756,6 @@ class _RegisterState extends State<Register> {
   // SERVICIOS A EJECUTAR EN PANTALLA
   Future<List<Carrera>> getCarreras() async {
     var response = await MyBaseClient().getCarreras();
-    //var listCarreras = [Carreras(name: 'Ambiental', id: 1), Carreras(name: 'Electronica', id: 2)];
-    //var response = listCarreras;
     return response;
   }
 }

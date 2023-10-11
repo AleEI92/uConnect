@@ -43,7 +43,9 @@ class Session {
       userID = user.user.id != null ? user.user.id! : -1;
       userPhoneNumber = user.user.phoneNumber != null ? user.user.phoneNumber! : "";
       userCareer = user.user.careerName != null ? user.user.careerName! : "";
-      userToken = user.accessToken;
+      if (userToken.isEmpty) {
+        userToken = user.accessToken;
+      }
       fileId = user.user.fileId;
       isStudent = true;
     }
@@ -51,7 +53,9 @@ class Session {
       userEmail = (user as CompanyLoginResponse).company.email;
       userName = user.company.name;
       userID = user.company.id != null ? user.company.id! : -1;
-      userToken = user.accessToken;
+      if (userToken.isEmpty) {
+        userToken = user.accessToken;
+      }
       isStudent = false;
     }
   }

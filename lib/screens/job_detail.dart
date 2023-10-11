@@ -65,12 +65,12 @@ class _JobDetailState extends State<JobDetail> {
                           width: double.maxFinite,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
-                            color: Colors.white,
+                            color: Colors.cyan[200],
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.cyan.withOpacity(0.8),
-                                spreadRadius: 4,
-                                blurRadius: 4,
+                                color: Colors.black54.withOpacity(0.7),
+                                spreadRadius: 1,
+                                blurRadius: 2,
                               ),
                             ],
                           ),
@@ -224,12 +224,8 @@ class _JobDetailState extends State<JobDetail> {
                             ),
                           ),
                           onPressed: () async {
-                            if (Session.getInstance().isStudent) {
-
-                            }
-                            else {
-
-                            }
+                            var snackBar = const SnackBar(content: Text('Próximamente...'));
+                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
                             },
                         ),
                       ],
