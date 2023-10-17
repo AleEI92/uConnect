@@ -167,103 +167,8 @@ class _HomeState extends State<Home> {
                   }
                   // MOSTRAMOS FORMULARIOS
                   else if (snapshot.hasData) {
-                    return LayoutBuilder(
-                      builder: (BuildContext context, BoxConstraints constraints) {
-                        ofertasAll.addAll(snapshot.data);
-                        for (var k = 0; k < ofertasAll.length; k++) {
-                          OfertaBody item = ofertasAll[k];
-                          widgets.add(
-                            SizedBox(
-                              width: constraints.maxWidth,
-                              height: constraints.maxHeight,
-                              child: Padding(
-                                padding: EdgeInsets.only(
-                                    left: 16, right: 16, top: 16, bottom: constraints.maxHeight*0.5),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                            builder: (BuildContext context) =>
-                                                JobDetail(offer: item)));
-                                  },
-                                  child: Card(
-                                    shadowColor: Colors.black,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    elevation: 8.0,
-                                    color: Colors.cyan[200],
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16.0, vertical: 32),
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.vertical,
-                                        child: Column(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            // DESCRIPTION
-                                            Padding(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8.0, vertical: 4.0),
-                                              child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    item.companyName!,
-                                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  const SizedBox(
-                                                    height: 12.0,
-                                                  ),
-                                                  Text(
-                                                    item.description!,
-                                                    maxLines: 3,
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                  /*if (item.skills != null && item.skills!.isNotEmpty) ... [
-                                                    const Text(
-                                                      "\n""REQUISITOS:" "\n",
-                                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                                    ),
-                                                    loadUserSkills(item.skills!),
-                                                  ],*/
-                                                  const SizedBox(
-                                                    height: 12.0,
-                                                  ),
-                                                  Text('Fecha: '
-                                                      '${item.creationDate!.day}'
-                                                      '-${item.creationDate!.month}'
-                                                      '-${item.creationDate!.year}'),
-                                                  if (item.users != null && item.users!.isNotEmpty) ... [
-
-                                                  ],
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                        return Container(
-                          alignment: Alignment.topCenter,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            physics: const PageScrollPhysics(), // this for snapping
-                            itemCount: widgets.length,
-                            itemBuilder: (_, index) => widgets[index],
-                          ),
-                        );
-                      },
-                    );
+                    ofertasAll.addAll(snapshot.data);
+                    return showList(snapshot.data);
                   }
                   else {
                     return Container();
@@ -330,6 +235,105 @@ class _HomeState extends State<Home> {
     );
   }
 
+  Widget showList(List<OfertaBody> ofertas) {
+    return Container(
+      decoration: myAppBackground(),
+      width: double.maxFinite,
+      height: double.maxFinite,
+      constraints: const BoxConstraints.expand(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16.0, vertical: 12),
+        child: ListView.builder(itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+            child: InkWell(
+              onTap: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(
+                        builder: (BuildContext context) =>
+                            JobDetail(offer: ofertasAll[index])));
+              },
+              child: Card(
+                shadowColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 8.0,
+                color: Colors.cyan[200],
+                child: SizedBox(
+                  height: 140,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 16),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // DESCRIPTION
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8.0, vertical: 4.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ofertas[index].companyName!,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(
+                                  height: 4.0,
+                                ),
+                                Text(
+                                  ofertas[index].description!,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (ofertas[index].skills != null && ofertas[index].skills!.isNotEmpty) ... [
+                                  const Text(
+                                    "\n""REQUISITOS:" "\n",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  loadUserSkills(ofertas[index].skills!),
+                                ],
+                                const SizedBox(
+                                  height: 4.0,
+                                ),
+                                Text('Fecha: '
+                                    '${ofertas[index].creationDate!.day}'
+                                    '-${ofertas[index].creationDate!.month}'
+                                    '-${ofertas[index].creationDate!.year}'),
+                                if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
+                                  const SizedBox(
+                                    height: 4.0,
+                                  ),
+                                  Text(
+                                    "Solicitudes: ${ofertas[index].users!.length}",
+                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        }, itemCount: ofertas.length),
+      ),
+    );
+  }
+
   Future<bool> _onBackPressed(BuildContext context) async {
     await AwesomeDialog(
         context: context,
@@ -373,7 +377,8 @@ class _HomeState extends State<Home> {
   }
 
   Future<dynamic> getAllOfertas() async {
-    var response = await MyBaseClient().getAllOfertas(getCareerID(), null);
+    int? idCareer = getCareerID();
+    var response = await MyBaseClient().getAllOfertas(idCareer, null);
     return response;
   }
 

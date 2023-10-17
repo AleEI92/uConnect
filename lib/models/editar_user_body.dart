@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:u_connect/models/skill_body.dart';
+
 EditarUserBody editarUserBodyFromJson(String str) => EditarUserBody.fromJson(json.decode(str));
 
 String editarUserBodyToJson(EditarUserBody data) => json.encode(data.toJson());
@@ -37,25 +39,5 @@ class EditarUserBody {
     "phone_number": phoneNumber,
     "skills": skills != null ? List<dynamic>.from(skills!.map((x) => x.toJson())) : null,
     "career": career,
-  };
-}
-
-class Skill {
-  String skillName;
-  String experience;
-
-  Skill({
-    required this.skillName,
-    required this.experience,
-  });
-
-  factory Skill.fromJson(Map<String, dynamic> json) => Skill(
-    skillName: json["skill_name"],
-    experience: json["experience"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "skill_name": skillName,
-    "experience": experience,
   };
 }

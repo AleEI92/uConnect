@@ -1,9 +1,7 @@
 
-
-
 import 'package:u_connect/models/company_login_response.dart';
-
 import '../models/carreras_response.dart';
+import '../models/skill_body.dart';
 import '../models/student_login_response.dart';
 
 class Session {
@@ -17,6 +15,7 @@ class Session {
   String userToken;
   int? fileId;
   bool isStudent = true;
+  late List<Skill>? skills = [];
   late List<Carrera>? allCarreras;
   late List<Carrera>? allCiudades;
 
@@ -27,6 +26,7 @@ class Session {
     this.userCareer = '',
     this.userToken = '',
     this.fileId,
+    this.skills,
     this.allCarreras,
     this.allCiudades
   ]);
@@ -47,6 +47,7 @@ class Session {
         userToken = user.accessToken;
       }
       fileId = user.user.fileId;
+      skills = user.user.skills;
       isStudent = true;
     }
     else {

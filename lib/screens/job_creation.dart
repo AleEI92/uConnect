@@ -510,52 +510,57 @@ class _JobCreationState extends State<JobCreation> {
         final fileSizeMB = file.size/(1000*1000);
         print("MB: $fileSizeMB");
 
-        if (file.path != null && context.mounted) {
-          Utils(context).startLoading();
-          String fileExtension = "pdf";
-          String type = "application";
-          if (file.extension == "png") {
-            fileExtension = file.extension!;
-            type = "image";
-          }
-          else if (file.extension == "jpeg" || file.extension == "jpg") {
-            fileExtension = file.extension!;
-            type = "image";
-          }
+        if (fileSizeMB < 9.9) {
+          if (file.path != null && context.mounted) {
+            Utils(context).startLoading();
+            String fileExtension = "pdf";
+            String type = "application";
+            if (file.extension == "png") {
+              fileExtension = file.extension!;
+              type = "image";
+            }
+            else if (file.extension == "jpeg" || file.extension == "jpg") {
+              fileExtension = file.extension!;
+              type = "image";
+            }
 
-          final httpFile = http.MultipartFile.fromBytes(
-              'file',
-              File(file.path!).readAsBytesSync(),
-              contentType: MediaType(type, fileExtension),
-              filename: file.name
-          );
-          await MyBaseClient().postUploadFile(
-              id, Constants.job,
-              fileExtension,
-              httpFile
-          ).then((value) {
-            Utils(context).stopLoading();
-            AwesomeDialog(
-                context: context,
-                dismissOnTouchOutside: false,
-                dismissOnBackKeyPress: false,
-                dialogType: DialogType.success,
-                headerAnimationLoop: false,
-                animType: AnimType.bottomSlide,
-                title: '¡Archivo subido exitosamente!',
-                desc:
-                'Se ha adjuntado un archivo a la oferta creada. Puede visualizarla en la sección de VER MIS OFERTAS.',
-                buttonsTextStyle:
-                const TextStyle(color: Colors.black),
-                showCloseIcon: false,
-                btnOkText: 'ACEPTAR',
-                btnOkOnPress: () {
-                  Navigator.of(context).pop(true);
-                }).show();
-          }).onError((error, stackTrace) {
-            Utils(context).stopLoading();
-            Utils(context).showErrorDialog(error.toString()).show();
-          });
+            final httpFile = http.MultipartFile.fromBytes(
+                'file',
+                File(file.path!).readAsBytesSync(),
+                contentType: MediaType(type, fileExtension),
+                filename: file.name
+            );
+            await MyBaseClient().postUploadFile(
+                id, Constants.job,
+                fileExtension,
+                httpFile
+            ).then((value) {
+              Utils(context).stopLoading();
+              AwesomeDialog(
+                  context: context,
+                  dismissOnTouchOutside: false,
+                  dismissOnBackKeyPress: false,
+                  dialogType: DialogType.success,
+                  headerAnimationLoop: false,
+                  animType: AnimType.bottomSlide,
+                  title: '¡Archivo subido exitosamente!',
+                  desc:
+                  'Se ha adjuntado un archivo a la oferta creada. Puede visualizarla en la sección de VER OFERTAS.',
+                  buttonsTextStyle:
+                  const TextStyle(color: Colors.black),
+                  showCloseIcon: false,
+                  btnOkText: 'ACEPTAR',
+                  btnOkOnPress: () {
+                    Navigator.of(context).pop(true);
+                  }).show();
+            }).onError((error, stackTrace) {
+              Utils(context).stopLoading();
+              Utils(context).showErrorDialog(error.toString()).show();
+            });
+          }
+        }
+        else if (context.mounted) {
+          Utils(context).showErrorDialog("El archivo que desea subir supera el máximo permitido (10 MB).").show();
         }
       } else {
         // User canceled the picker

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:u_connect/screens/login.dart';
-import '../custom_widgets/background_decor.dart';
+import 'custom_widgets/background_decor.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -58,3 +58,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+// COMMAND TO BUILD APK RELEASE
+// flutter build apk --release

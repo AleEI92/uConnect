@@ -2,9 +2,9 @@
 import '../models/carreras_response.dart';
 
 class Constants {
-  //static const String baseIP = "http://192.168.100.159";
-  static const String baseIP = "http://192.168.100.93:8000";
-  static const String baseURL = "$baseIP/uconnect/api";
+  //static const String localIP = "http://192.168.100.22";
+  static const String publicIP = "http://34.196.114.158";
+  static const String baseURL = "$publicIP/uconnect/api";
 
   ////////////////////////////////////////////////////////////////////////
   static const String disculpe = "Disculpe los inconvenientes.";

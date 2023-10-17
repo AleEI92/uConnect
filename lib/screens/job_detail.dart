@@ -1,10 +1,12 @@
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/common/session.dart';
 
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
+import '../models/generic_post_ok.dart';
 import '../models/oferta_body.dart';
 import 'package:http/http.dart' as http;
 
@@ -181,6 +183,46 @@ class _JobDetailState extends State<JobDetail> {
                                 hintText: 'Seleccione su ciudad:'),
                             onChanged: null
                         ),
+                        if (!Session.getInstance().isStudent) ... [
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          const Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Aplicantes',
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 8.0,
+                              ),
+                              /*if (offer.users != null && offer.users!.isNotEmpty) ... [
+                              ListView.builder(
+                                itemCount: offer.users!.length,
+                                itemBuilder: (context, index) {
+                                  return Container(
+
+                                  );
+                                },
+                              ),
+                            ]
+                            else ... [*/
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Próximamente...',
+                                ),
+                              ),
+                              //]
+                            ],
+                          ),
+                        ],
                         if (offer.fileId != null) ... [
                           const SizedBox(
                             height: 30.0,
@@ -224,8 +266,40 @@ class _JobDetailState extends State<JobDetail> {
                             ),
                           ),
                           onPressed: () async {
-                            var snackBar = const SnackBar(content: Text('Próximamente...'));
-                            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            if (Session.getInstance().isStudent) {
+                              Utils(context).startLoading();
+                              callApplyToOfferFunction().then((value) {
+                                Utils(context).stopLoading();
+                                if (value != null) {
+                                  if (value.message == "OK") {
+                                    AwesomeDialog(
+                                        context: context,
+                                        dismissOnTouchOutside: false,
+                                        dismissOnBackKeyPress: false,
+                                        dialogType: DialogType.success,
+                                        headerAnimationLoop: false,
+                                        animType: AnimType.bottomSlide,
+                                        title: '¡Solicitud exitosa!',
+                                        desc:
+                                        'Se ha informado a la empresa de tu interés. ¡Buena suerte!',
+                                        buttonsTextStyle:
+                                        const TextStyle(color: Colors.black),
+                                        showCloseIcon: false,
+                                        btnOkText: 'ACEPTAR',
+                                        btnOkOnPress: () {
+                                          Navigator.of(context).pop(true);
+                                        }).show();
+                                  }
+                                }
+                              }).onError((error, stackTrace) {
+                                Utils(context).stopLoading();
+                                Utils(context).showErrorDialog(error.toString()).show();
+                              });
+                            }
+                            else {
+                              var snackBar = const SnackBar(content: Text('Próximamente...'));
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                            }
                             },
                         ),
                       ],
@@ -237,5 +311,17 @@ class _JobDetailState extends State<JobDetail> {
           )
       ),
     );
+  }
+
+  Future<GenericOkPost?> callApplyToOfferFunction() async {
+    return await postApplyToOffer(offer.id);
+  }
+
+  Future<GenericOkPost?> postApplyToOffer(int? offerID) async {
+    if (offerID != null) {
+      var response = await MyBaseClient().postApplyToOffer(offerID);
+      return response;
+    }
+    return null;
   }
 }

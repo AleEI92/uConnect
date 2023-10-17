@@ -14,7 +14,7 @@ class ApiProvider {
   }
 
   final String _baseUrl = Constants.baseURL;
-  final Duration myTimeout = const Duration(seconds: 15);
+  final Duration myTimeout = const Duration(seconds: 20);
 
   Map<String, String> baseHeaders = {
     'Content-type': 'application/json',
@@ -45,7 +45,7 @@ class ApiProvider {
     return responseJson;
   }
 
-  Future<dynamic> post(String url, Object body) async {
+  Future<dynamic> post(String url, Object? body) async {
     dynamic responseJson;
     try {
       print("POST: ${(_baseUrl + url)}");

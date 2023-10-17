@@ -28,6 +28,7 @@ abstract class BaseClient {
   Future putUpdateUser(int id, Object body);
   Future getAllOfertas(int? careerID, List<String>? skills);
   Future getFile(int idOferta);
+  Future postApplyToOffer(int idOferta);
 }
 
 class MyBaseClient extends BaseClient {
@@ -215,18 +216,18 @@ class MyBaseClient extends BaseClient {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       String urlPATH = "/job/all/";
-      dynamic response = await provider.get(urlPATH);
       if (careerID != null || skills != null) {
         if (careerID != null && skills == null) {
           urlPATH = "$urlPATH?career_id=$careerID";
         }
         else if (careerID == null && skills != null && skills.isNotEmpty) {
-          urlPATH = "$urlPATH?skills=$careerID";
+          urlPATH = "$urlPATH?skills=$skills";
         }
         else {
-
+          // CASO DE QUE TENGA CAREER ID Y SKILLS!
         }
       }
+      dynamic response = await provider.get(urlPATH);
       String json = _myUT8JsonParser(response.bodyBytes);
       return misOfertasBodyFromJson(json);
     }
@@ -241,6 +242,18 @@ class MyBaseClient extends BaseClient {
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       final response = await provider.get("/file/$idOferta/");
       return response;
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<GenericOkPost> postApplyToOffer(int idOferta) async {
+    try {
+      final response = await provider.post("/job/apply/?job_id=$idOferta", null);
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
     }
     catch(e) {
       throw Exception(e.toString());
