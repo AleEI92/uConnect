@@ -12,6 +12,7 @@ import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 import 'job_creation.dart';
 import 'job_detail.dart';
+import 'jobs_filter.dart';
 import 'login.dart';
 
 
@@ -95,7 +96,7 @@ class _HomeState extends State<Home> {
                           const Profile()));
                 },
               ),
-              const Divider(thickness: 2),
+              const Divider(thickness: 1.5),
               ListTile(
                 leading: const Icon(Icons.password_rounded),
                 title: const Text(
@@ -107,7 +108,7 @@ class _HomeState extends State<Home> {
                   _changePassword();
                 },
               ),
-              const Divider(thickness: 2),
+              const Divider(thickness: 1.5),
               ListTile(
                 leading: const Icon(Icons.info_rounded),
                 title: const Text(
@@ -118,6 +119,18 @@ class _HomeState extends State<Home> {
                   Navigator.pop(context);
                   var snackBar = const SnackBar(content: Text('Próximamente...'));
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                },
+              ),
+              const Divider(thickness: 1.5),
+              ListTile(
+                leading: const Icon(Icons.logout_rounded),
+                title: const Text(
+                    'Cerrar sesión',
+                    style: TextStyle(fontSize: 14)
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _onBackPressed(context);
                 },
               ),
             ],
@@ -136,15 +149,20 @@ class _HomeState extends State<Home> {
             },
           ),
           actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.logout_rounded,
-                color: Colors.white,
-              ),
-              onPressed: () {
-                _onBackPressed(context);
-              },
-            )
+            if (_session.isStudent) ... [
+              IconButton(
+                icon: const Icon(
+                  Icons.filter_alt_rounded,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                      MaterialPageRoute(
+                          builder: (BuildContext context) =>
+                          const JobsFilter()));
+                },
+              )
+            ]
           ],
         ),
         body: SafeArea(
@@ -262,7 +280,7 @@ class _HomeState extends State<Home> {
                 elevation: 8.0,
                 color: Colors.cyan[200],
                 child: SizedBox(
-                  height: 140,
+                  height: 130,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16.0, vertical: 16),
@@ -280,7 +298,7 @@ class _HomeState extends State<Home> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  ofertas[index].companyName!,
+                                  ofertas[index].careerName!,
                                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -289,19 +307,21 @@ class _HomeState extends State<Home> {
                                   height: 4.0,
                                 ),
                                 Text(
+                                  ofertas[index].companyName!,
+                                  style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 14.0),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                /*const SizedBox(
+                                  height: 4.0,
+                                ),
+                                Text(
                                   ofertas[index].description!,
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                ),
-                                if (ofertas[index].skills != null && ofertas[index].skills!.isNotEmpty) ... [
-                                  const Text(
-                                    "\n""REQUISITOS:" "\n",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  loadUserSkills(ofertas[index].skills!),
-                                ],
+                                ),*/
                                 const SizedBox(
-                                  height: 4.0,
+                                  height: 16.0,
                                 ),
                                 Text('Fecha: '
                                     '${ofertas[index].creationDate!.day}'
@@ -377,8 +397,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<dynamic> getAllOfertas() async {
-    int? idCareer = getCareerID();
-    var response = await MyBaseClient().getAllOfertas(idCareer, null);
+    var response = await MyBaseClient().getAllOfertas(null, null, null);
     return response;
   }
 

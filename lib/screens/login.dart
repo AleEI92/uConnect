@@ -27,6 +27,7 @@ class _LoginState extends State<Login> {
   final passControl = TextEditingController();
   bool rememberMe = false;
   late SharedPreferences prefs;
+  var _passHide = true;
 
   @override
   void initState() {
@@ -111,16 +112,27 @@ class _LoginState extends State<Login> {
                                 maxLines: 1,
                                 maxLength: 16,
                                 keyboardType: TextInputType.visiblePassword,
-                                obscureText: true,
+                                obscureText: _passHide,
                                 style: const TextStyle(
                                   fontSize: 15.0,
                                 ),
-                                decoration: const InputDecoration(
-                                  counterText: '',
-                                  prefixIcon: Icon(Icons.key_rounded),
-                                  border: OutlineInputBorder(),
-                                  labelText: 'Contraseña',
-                                  hintText: 'Ingrese contraseña segura',
+                                decoration: InputDecoration(
+                                    counterText: '',
+                                    prefixIcon: const Icon(Icons.key_rounded),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(
+                                        _passHide
+                                            ? Icons.visibility_rounded
+                                            : Icons.visibility_off_rounded,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _passHide = !_passHide;
+                                        });
+                                      },
+                                    ),
+                                    border: const OutlineInputBorder(),
+                                    labelText: 'Contraseña',
                                 ),
                               ),
                               const SizedBox(

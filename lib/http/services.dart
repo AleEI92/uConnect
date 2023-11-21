@@ -26,7 +26,7 @@ abstract class BaseClient {
   Future getOfertaByID(int idOferta);
   Future postUploadFile(int id, String type, String typeFile, String file);
   Future putUpdateUser(int id, Object body);
-  Future getAllOfertas(int? careerID, List<String>? skills);
+  Future getAllOfertas(int? careerID, String? jobType, List<String>? skills);
   Future getFile(int idOferta);
   Future postApplyToOffer(int idOferta);
 }
@@ -212,7 +212,7 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future<List<OfertaBody>> getAllOfertas(int? careerID, List<String>? skills) async {
+  Future<List<OfertaBody>> getAllOfertas(int? careerID, String? jobType, List<String>? skills) async {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       String urlPATH = "/job/all/";

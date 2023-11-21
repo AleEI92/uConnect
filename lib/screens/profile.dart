@@ -68,18 +68,18 @@ class _ProfileState extends State<Profile> {
       ),
       body: SafeArea(
           child: Container(
-        decoration: myAppBackground(),
-        width: double.maxFinite,
-        height: double.maxFinite,
-        constraints: const BoxConstraints.expand(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
-          child: SingleChildScrollView(
-            child: _session.isStudent
-                ? studentForm(_session.allCarreras!)
-                : companyForm(),
-          ),
-        ),
+            decoration: myAppBackground(),
+            width: double.maxFinite,
+            height: double.maxFinite,
+            constraints: const BoxConstraints.expand(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
+              child: SingleChildScrollView(
+                child: _session.isStudent
+                    ? studentForm(_session.allCarreras!)
+                    : companyForm(),
+              ),
+            ),
       )),
     );
   }

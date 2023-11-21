@@ -187,7 +187,7 @@ class _JobDetailState extends State<JobDetail> {
                           const SizedBox(
                             height: 20.0,
                           ),
-                          const Column(
+                          Column(
                             children: [
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -202,24 +202,26 @@ class _JobDetailState extends State<JobDetail> {
                               SizedBox(
                                 height: 8.0,
                               ),
-                              /*if (offer.users != null && offer.users!.isNotEmpty) ... [
-                              ListView.builder(
-                                itemCount: offer.users!.length,
-                                itemBuilder: (context, index) {
-                                  return Container(
+                              if (offer.users != null && offer.users!.isNotEmpty) ... [
+                                ListView.builder(
+                                  itemCount: offer.users!.length,
+                                  itemBuilder: (context, index) {
+                                    return Expanded(
+                                      child: Container(
 
-                                  );
-                                },
-                              ),
-                            ]
-                            else ... [*/
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Próximamente...',
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
-                              //]
+                              ]
+                              else ... [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Próximamente...',
+                                  ),
+                                ),
+                              ]
                             ],
                           ),
                         ],
