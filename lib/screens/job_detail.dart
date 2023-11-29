@@ -2,6 +2,7 @@
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/common/session.dart';
+import 'package:u_connect/screens/view_applicants.dart';
 
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
@@ -9,6 +10,8 @@ import '../http/services.dart';
 import '../models/generic_post_ok.dart';
 import '../models/oferta_body.dart';
 import 'package:http/http.dart' as http;
+
+import 'home.dart';
 
 
 class JobDetail extends StatefulWidget {
@@ -183,46 +186,40 @@ class _JobDetailState extends State<JobDetail> {
                                 hintText: 'Seleccione su ciudad:'),
                             onChanged: null
                         ),
-                        if (!Session.getInstance().isStudent) ... [
+                        if (!Session.getInstance().isStudent &&
+                            offer.users != null &&
+                            offer.users!.isNotEmpty) ... [
                           const SizedBox(
                             height: 20.0,
                           ),
-                          Column(
-                            children: [
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  'Aplicantes',
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: ElevatedButton(
+                              style: ButtonStyle(
+                                minimumSize: MaterialStateProperty.all(const Size(160, 35)),
+                                backgroundColor: MaterialStateProperty.all(Colors.blue),
                               ),
-                              SizedBox(
-                                height: 8.0,
-                              ),
-                              if (offer.users != null && offer.users!.isNotEmpty) ... [
-                                ListView.builder(
-                                  itemCount: offer.users!.length,
-                                  itemBuilder: (context, index) {
-                                    return Expanded(
-                                      child: Container(
-
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ]
-                              else ... [
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Text(
-                                    'Próximamente...',
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'VER APLICANTES',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
-                              ]
-                            ],
+                                  SizedBox(width: 10),
+                                  Icon(Icons.arrow_forward_rounded),
+                                ],
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                          ViewApplicants(users: offer.users!)));
+                              },
+                            ),
                           ),
                         ],
                         if (offer.fileId != null) ... [
@@ -269,6 +266,27 @@ class _JobDetailState extends State<JobDetail> {
                           ),
                           onPressed: () async {
                             if (Session.getInstance().isStudent) {
+                              if (Session.getInstance().fileId == null) {
+                                AwesomeDialog(
+                                    context: context,
+                                    dismissOnTouchOutside: false,
+                                    dismissOnBackKeyPress: false,
+                                    dialogType: DialogType.error,
+                                    headerAnimationLoop: false,
+                                    animType: AnimType.bottomSlide,
+                                    title: 'Solicitud denegada',
+                                    desc:
+                                    'Debe cargar un CV para poder aplicar a una oferta.',
+                                    buttonsTextStyle:
+                                    const TextStyle(color: Colors.black),
+                                    showCloseIcon: false,
+                                    btnOkText: 'ACEPTAR',
+                                    btnOkColor: Colors.cyan[400],
+                                    btnOkOnPress: () {
+                                      Navigator.of(context).pop(true);
+                                    }).show();
+                                return;
+                              }
                               Utils(context).startLoading();
                               callApplyToOfferFunction().then((value) {
                                 Utils(context).stopLoading();
@@ -289,7 +307,8 @@ class _JobDetailState extends State<JobDetail> {
                                         showCloseIcon: false,
                                         btnOkText: 'ACEPTAR',
                                         btnOkOnPress: () {
-                                          Navigator.of(context).pop(true);
+                                          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                              builder: (context) => const Home()), (Route route) => false);
                                         }).show();
                                   }
                                 }

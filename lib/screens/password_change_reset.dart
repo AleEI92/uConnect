@@ -136,7 +136,7 @@ class PasswordChangeReset extends StatelessWidget {
                       if (isRecovering) {
                         if (_formKey.currentState!.validate()) {
                           Utils(context).startLoading();
-                          callRecoverPassword().then((value) {
+                          callRecoverPasswordUser().then((value) {
                             Utils(context).stopLoading();
                             AwesomeDialog(
                                 context: context,
@@ -154,8 +154,35 @@ class PasswordChangeReset extends StatelessWidget {
                                 btnOkColor: Colors.cyan,
                                 btnOkOnPress: Utils(context).popDialog).show();
                           }).onError((error, stackTrace) {
-                            Utils(context).stopLoading();
-                            Utils(context).showErrorDialog(Constants.disculpe).show();
+                            if (error is Exception) {
+                              if (error.toString().contains("El correo no se encuentra registrado")) {
+                                callRecoverPasswordCompany().then((value) {
+                                  Utils(context).stopLoading();
+                                  AwesomeDialog(
+                                      context: context,
+                                      dismissOnTouchOutside: false,
+                                      dismissOnBackKeyPress: false,
+                                      dialogType: DialogType.success,
+                                      headerAnimationLoop: false,
+                                      animType: AnimType.bottomSlide,
+                                      title: '¡Solicitud exitosa!',
+                                      desc: value.message,
+                                      buttonsTextStyle:
+                                      const TextStyle(color: Colors.black),
+                                      showCloseIcon: false,
+                                      btnOkText: 'ACEPTAR',
+                                      btnOkColor: Colors.cyan,
+                                      btnOkOnPress: Utils(context).popDialog).show();
+                                }).onError((error, stackTrace) {
+                                  Utils(context).stopLoading();
+                                  Utils(context).showErrorDialog(Constants.disculpe).show();
+                                });
+                              }
+                              else {
+                                Utils(context).stopLoading();
+                                Utils(context).showErrorDialog(Constants.disculpe).show();
+                              }
+                            }
                           });
                         }
                       }
@@ -213,11 +240,19 @@ class PasswordChangeReset extends StatelessWidget {
     return null;
   }
 
-  Future<GenericOkPost> callRecoverPassword() async {
+  Future<GenericOkPost> callRecoverPasswordUser() async {
     var body = RecoverPasswordBody(
         email: _mail);
 
-    var response = await MyBaseClient().postRecuperarPassword(recoverPasswordBodyToJson(body));
+    var response = await MyBaseClient().postRecuperarPasswordUser(recoverPasswordBodyToJson(body));
+    return response;
+  }
+
+  Future<GenericOkPost> callRecoverPasswordCompany() async {
+    var body = RecoverPasswordBody(
+        email: _mail);
+
+    var response = await MyBaseClient().postRecuperarPasswordCompany(recoverPasswordBodyToJson(body));
     return response;
   }
 

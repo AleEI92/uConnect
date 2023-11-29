@@ -14,7 +14,7 @@ class ApiProvider {
   }
 
   final String _baseUrl = Constants.baseURL;
-  final Duration myTimeout = const Duration(seconds: 20);
+  final Duration myTimeout = const Duration(seconds: 30);
 
   Map<String, String> baseHeaders = {
     'Content-type': 'application/json',
@@ -84,6 +84,20 @@ class ApiProvider {
       print("Headers: $baseHeaders");
       final response = await http.put(Uri.parse(_baseUrl + url),
           body: body, headers: baseHeaders).timeout(myTimeout);
+      responseJson = _response(response);
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> delete(String url) async {
+    dynamic responseJson;
+    try {
+      print("DELETE: ${(_baseUrl + url)}");
+      print("Headers: $baseHeaders");
+      final response = await http.delete(Uri.parse(_baseUrl + url),
+          headers: baseHeaders).timeout(myTimeout);
       responseJson = _response(response);
     } on SocketException {
       throw FetchDataException('No Internet connection');

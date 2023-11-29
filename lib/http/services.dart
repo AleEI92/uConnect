@@ -5,6 +5,7 @@ import 'package:u_connect/common/session.dart';
 import 'package:u_connect/http/api_provider.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/editar_company_body.dart';
+import 'package:u_connect/models/file_upload_response.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
 import 'package:u_connect/models/company_login_response.dart';
 import '../models/oferta_body.dart';
@@ -18,7 +19,8 @@ abstract class BaseClient {
   Future postRegistrarEstudiante(Object body);
   Future postRegistrarCompanhia(Object body);
   Future postLogin(Object body);
-  Future postRecuperarPassword(Object body);
+  Future postRecuperarPasswordUser(Object body);
+  Future postRecuperarPasswordCompany(Object body);
   Future putChangePassword(Object body, int id, String type);
   Future getCiudades();
   Future postCrearOferta(Object body);
@@ -29,6 +31,8 @@ abstract class BaseClient {
   Future getAllOfertas(int? careerID, String? jobType, List<String>? skills);
   Future getFile(int idOferta);
   Future postApplyToOffer(int idOferta);
+  Future getUserByMail(String mail);
+  Future deleteJob(int id);
 }
 
 class MyBaseClient extends BaseClient {
@@ -97,9 +101,21 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future postRecuperarPassword(Object body) async {
+  Future<GenericOkPost> postRecuperarPasswordUser(Object body) async {
     try{
       final response = await provider.post("/user/recover-password/", body);
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<GenericOkPost> postRecuperarPasswordCompany(Object body) async {
+    try{
+      final response = await provider.post("/company/recover-password/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
       return genericOkPostFromJson(json);
     }
@@ -172,7 +188,7 @@ class MyBaseClient extends BaseClient {
   }
 
   @override
-  Future<dynamic> postUploadFile(int id, String type, String typeFile, dynamic file) async {
+  Future<FileUploadResponse> postUploadFile(int id, String type, String typeFile, dynamic file) async {
     try{
       provider.fileHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       if (typeFile == "png") {
@@ -182,7 +198,8 @@ class MyBaseClient extends BaseClient {
         provider.fileHeaders['Content-type'] = "image/jpeg";
       }
       final response = await provider.post("/file/upload/?id=$id&type=$type", file);
-      return response;
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return fileUploadResponseFromJson(json);
     }
     catch(e) {
       throw Exception(e.toString());
@@ -216,17 +233,40 @@ class MyBaseClient extends BaseClient {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       String urlPATH = "/job/all/";
-      if (careerID != null || skills != null) {
-        if (careerID != null && skills == null) {
-          urlPATH = "$urlPATH?career_id=$careerID";
-        }
-        else if (careerID == null && skills != null && skills.isNotEmpty) {
-          urlPATH = "$urlPATH?skills=$skills";
-        }
-        else {
-          // CASO DE QUE TENGA CAREER ID Y SKILLS!
+
+      if (careerID != null) {
+        urlPATH = "$urlPATH?career_id=$careerID";
+        if (jobType != null) {
+          urlPATH = "$urlPATH&job_type=$jobType";
         }
       }
+      else if (jobType != null) {
+        urlPATH = "$urlPATH?job_type=$jobType";
+      }
+
+      if (skills != null && skills.isNotEmpty) {
+        if (careerID != null || jobType != null) {
+          urlPATH = "$urlPATH&";
+          for (var i = 0; i < skills.length; i++) {
+            final value = skills[i];
+            urlPATH = "$urlPATH" "skills=$value";
+            if (i+1 < skills.length) {
+              urlPATH = "$urlPATH&";
+            }
+          }
+        }
+        else {
+          urlPATH = "$urlPATH?";
+          for (var i = 0; i < skills.length; i++) {
+            final value = skills[i];
+            urlPATH = "$urlPATH" "skills=$value";
+            if (i+1 < skills.length) {
+              urlPATH = "$urlPATH&";
+            }
+          }
+        }
+      }
+
       dynamic response = await provider.get(urlPATH);
       String json = _myUT8JsonParser(response.bodyBytes);
       return misOfertasBodyFromJson(json);
@@ -252,6 +292,32 @@ class MyBaseClient extends BaseClient {
   Future<GenericOkPost> postApplyToOffer(int idOferta) async {
     try {
       final response = await provider.post("/job/apply/?job_id=$idOferta", null);
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<User> getUserByMail(String mail) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.get("/user/email/$mail/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return userFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<GenericOkPost> deleteJob(int id) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.delete("/job/$id/");
       String json = _myUT8JsonParser(response.bodyBytes);
       return genericOkPostFromJson(json);
     }

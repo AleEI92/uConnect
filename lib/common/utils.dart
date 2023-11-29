@@ -57,7 +57,6 @@ class Utils {
         title: 'Oops.. Algo ha ocurrido',
         desc: desc,
         btnOkText: 'ACEPTAR',
-        //btnOkFunction: ,
         btnOkFunction: Utils(context).popDialog,
       ),
     );

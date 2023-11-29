@@ -40,6 +40,8 @@ class User {
   int? id;
   String? phoneNumber;
   String? careerName;
+  String? career;
+  int? careerId;
   int? fileId;
   List<Skill>? skills;
 
@@ -49,6 +51,8 @@ class User {
     required this.id,
     required this.phoneNumber,
     required this.careerName,
+    required this.career,
+    required this.careerId,
     this.fileId,
     this.skills
   });
@@ -59,6 +63,8 @@ class User {
     id: json["id"],
     phoneNumber: json["phone_number"],
     careerName: json["career_name"],
+    career: json["career"],
+    careerId: json["career_id"],
     fileId: json["file_id"],
     skills: json["skills"] != null ? List<Skill>.from(json["skills"].map((x) => Skill.fromJson(x))) : null,
   );
@@ -69,6 +75,8 @@ class User {
     "id": id,
     "phone_number": phoneNumber,
     "career_name": careerName,
+    "career": career,
+    "career_id": careerId,
     "file_id": fileId,
     "skills": skills != null ? List<dynamic>.from(skills!.map((x) => x.toJson())) : null,
   };

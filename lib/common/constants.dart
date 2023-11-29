@@ -2,12 +2,13 @@
 import '../models/carreras_response.dart';
 
 class Constants {
-  static const String localIP = "http://192.168.100.22";
-  //static const String publicIP = "http://34.196.114.158";
-  static const String baseURL = "$localIP/uconnect/api";
+  //static const String localIP = "http://192.168.100.29";
+  static const String awsIP = "http://34.196.114.158";
+  static const String baseURL = "$awsIP/uconnect/api";
 
   ////////////////////////////////////////////////////////////////////////
   static const String disculpe = "Disculpe los inconvenientes.";
+  static const String versionCode = "1.1.0";
 
   // JMMG01@HOTMAIL.COM
 

@@ -1,4 +1,5 @@
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/models/oferta_body.dart';
 import 'package:u_connect/screens/job_detail.dart';
@@ -84,6 +85,44 @@ class _ViewJobsState extends State<ViewJobs> {
                         builder: (BuildContext context) =>
                         JobDetail(offer: ofertas[index])));
               },
+              onLongPress: () async {
+                await AwesomeDialog(
+                    context: context,
+                    autoDismiss: false,
+                    dismissOnBackKeyPress: false,
+                    onDismissCallback: (type) {},
+                    useRootNavigator: false,
+                    dialogType: DialogType.info,
+                    animType: AnimType.rightSlide,
+                    dismissOnTouchOutside: false,
+                    title: '¿Desea eliminar esta oferta?',
+                    desc: '',
+                    buttonsTextStyle: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                    btnOkText: 'SI',
+                    btnOkColor: Colors.cyan[400],
+                    btnCancelText: 'NO',
+                    btnCancelColor: Colors.grey[400],
+                    btnOkOnPress: () async {
+                      Navigator.of(context).pop();
+                      Utils(context).startLoading();
+                      final response = await MyBaseClient().deleteJob(ofertas[index].id!);
+                      if (!mounted) return;
+                      Utils(context).stopLoading();
+
+                      if (response != null && response.message.isNotEmpty) {
+                        setState(() {
+                          ofertas.removeAt(index);
+                        });
+                      }
+                    },
+                    btnCancelOnPress: () async {
+                      Navigator.of(context).pop();
+                    }).show();
+              },
               child: Card(
                 shadowColor: Colors.black,
                 shape: RoundedRectangleBorder(
@@ -105,10 +144,23 @@ class _ViewJobsState extends State<ViewJobs> {
                               '${ofertas[index].creationDate!.day}'
                               '-${ofertas[index].creationDate!.month}'
                               '-${ofertas[index].creationDate!.year}'),
-                          const Text('Descripción:  Ver más...',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          const SizedBox(height: 8),
+                          if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
+                            Text(
+                              "Solicitudes: ${ofertas[index].users!.length}",
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ]
+                          else ... [
+                            const Text(
+                              "Solicitudes: 0",
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ]
                         ],
                       ),
                       const Spacer(),

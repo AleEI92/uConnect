@@ -23,7 +23,8 @@ import 'home.dart';
 
 
 class Profile extends StatefulWidget {
-  const Profile({super.key});
+  final User? user;
+  const Profile({Key? key, this.user}) : super(key: key);
 
   @override
   State<Profile> createState() => _ProfileState();
@@ -51,12 +52,15 @@ class _ProfileState extends State<Profile> {
   final List<String> listDescription = [""];
   final List<String> listEXP = [""];
   String _selectedExperience = '';
+
+  User? user;
   /////////////////////////////////////////////////////
 
   @override
   void initState() {
     super.initState();
     _session = Session.getInstance();
+    user = widget.user;
     setInitialValues();
   }
 
@@ -75,7 +79,7 @@ class _ProfileState extends State<Profile> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
               child: SingleChildScrollView(
-                child: _session.isStudent
+                child: (user != null || _session.isStudent)
                     ? studentForm(_session.allCarreras!)
                     : companyForm(),
               ),
@@ -85,7 +89,19 @@ class _ProfileState extends State<Profile> {
   }
 
   void setInitialValues() {
-    if (_session.isStudent) {
+    if (user != null) {
+      studentNameControl.text = user!.fullName!;
+      studentMailControl.text = user!.email!;
+      studentPhoneControl.text = user!.phoneNumber!;
+      _selectedCarrera = user!.careerName!;
+      if (user!.skills != null) {
+        for (var skill in user!.skills!) {
+          listDescription.add(skill.skillName);
+          listEXP.add(skill.experience);
+        }
+      }
+    }
+    else if (_session.isStudent) {
       studentNameControl.text = _session.userName;
       studentMailControl.text = _session.userEmail;
       studentPhoneControl.text = _session.userPhoneNumber;
@@ -121,6 +137,7 @@ class _ProfileState extends State<Profile> {
               // FULL NAME
               TextFormField(
                 controller: studentNameControl,
+                readOnly: user != null,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un nombre para el registro.';
@@ -141,6 +158,7 @@ class _ProfileState extends State<Profile> {
               // USER EMAIL
               TextFormField(
                 controller: studentMailControl,
+                readOnly: user != null,
                 validator: (value) {
                   return mailValidation(value);
                 },
@@ -158,6 +176,7 @@ class _ProfileState extends State<Profile> {
               // USER PHONE NUMBER
               TextFormField(
                 controller: studentPhoneControl,
+                readOnly: user != null,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un número de celular.';
@@ -197,6 +216,7 @@ class _ProfileState extends State<Profile> {
                 icon: const Icon(Icons.keyboard_arrow_down),
                 items: carreras.map((carrera) {
                   return DropdownMenuItem<String>(
+                    enabled: user == null,
                     value: carrera.name,
                     child: Text(carrera.name),
                   );
@@ -204,17 +224,19 @@ class _ProfileState extends State<Profile> {
                 decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     hintText: 'Seleccione su carrera:'),
-                onChanged: (value) {
+                onChanged: user == null ? (value) {
                   _selectedCarrera = value.toString();
-                },
+                } : null,
               ),
               const SizedBox(
                 height: 20.0,
               ),
-              skillForm(),
-              const SizedBox(
-                height: 20.0,
-              ),
+              if (user == null) ... [
+                skillForm(),
+                const SizedBox(
+                  height: 20.0,
+                ),
+              ],
               ListView.builder(
                 shrinkWrap: true,
                 itemCount: listDescription.length,
@@ -237,83 +259,105 @@ class _ProfileState extends State<Profile> {
               InkWell(
                 child: const Icon(Icons.file_present_rounded, size: 56),
                 onTap: () async {
-                  chooseFile(_session.userID, _session.isStudent);
-                },
-              ),
-              const Text(
-                "Cargar CV (.pdf)",
-              ),
-              const SizedBox(
-                height: 50.0,
-              ),
-              ElevatedButton(
-                style: ButtonStyle(
-                  minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                  backgroundColor: MaterialStateProperty.all(Colors.black45),
-                ),
-                child: const Text(
-                  'ACTUALIZAR',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                onPressed: () async {
-                  if (_studentFormKey.currentState!.validate()) {
+                  if (user != null) {
+                    // DOWNLOAD FILE FROM OFFER
                     Utils(context).startLoading();
-                    final List<Skill> list = [];
-                    for (var i = 0; i < listDescription.length; i++) {
-                      list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
-                    }
-                    list.removeAt(0);
-
-                    var body = EditarUserBody(
-                      fullName: studentNameControl.value.text,
-                      email: studentMailControl.value.text,
-                      phoneNumber: studentPhoneControl.value.text,
-                      career: _selectedCarrera,
-                      skills: list
-                    );
-
-                    await MyBaseClient().putUpdateUser(
-                        _session.userID, editarUserBodyToJson(body))
-                    .then((value) {
-                      if (context.mounted) { Utils(context).stopLoading();}
-                      if (value != null && value is User) {
-                        _session.setSessionData(
-                            StudentLoginResponse(
-                                user: value,
-                                accessToken: _session.userToken
-                            )
-                        );
-                        AwesomeDialog(
-                            context: context,
-                            dismissOnTouchOutside: false,
-                            dismissOnBackKeyPress: false,
-                            dialogType: DialogType.success,
-                            headerAnimationLoop: false,
-                            animType: AnimType.bottomSlide,
-                            title: '¡Actualización exitosa!',
-                            desc:
-                            'Se ha editado sus datos correctamente.',
-                            buttonsTextStyle:
-                            const TextStyle(color: Colors.black),
-                            showCloseIcon: false,
-                            btnOkText: 'ACEPTAR',
-                            btnOkOnPress: () {
-                              //Navigator.of(context).pop(true);
-                              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                                  builder: (context) => const Home()), (Route route) => false);
-                            }).show();
+                    var response = await MyBaseClient().getFile(user!.fileId!) as http.Response?;
+                    if (response != null && response.statusCode == 200) {
+                      if (context.mounted) {
+                        Utils(context).getFileFromBinaryAndOpen(response);
                       }
-                    }).onError((error, stackTrace) {
-                      if (context.mounted) { Utils(context).stopLoading();}
-                      Utils(context).showErrorDialog(error.toString()).show();
-                    });
+                    }
+                    if (context.mounted) {
+                      Utils(context).stopLoading();
+                    }
+                  }
+                  else {
+                    chooseFile(_session.userID, _session.isStudent);
                   }
                 },
               ),
+              if (user != null) ... [
+                const Text(
+                  "Descargar CV",
+                ),
+              ]
+              else ... [
+                const Text(
+                  "Actualizar CV (.pdf)",
+                ),
+                const SizedBox(
+                  height: 50.0,
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(
+                    minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                    backgroundColor: MaterialStateProperty.all(Colors.black45),
+                  ),
+                  child: const Text(
+                    'ACTUALIZAR',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  onPressed: () async {
+                    if (_studentFormKey.currentState!.validate()) {
+                      Utils(context).startLoading();
+                      final List<Skill> list = [];
+                      for (var i = 0; i < listDescription.length; i++) {
+                        list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
+                      }
+                      list.removeAt(0);
+
+                      var body = EditarUserBody(
+                          fullName: studentNameControl.value.text,
+                          email: studentMailControl.value.text,
+                          phoneNumber: studentPhoneControl.value.text,
+                          career: _selectedCarrera,
+                          skills: list
+                      );
+
+                      await MyBaseClient().putUpdateUser(
+                          _session.userID, editarUserBodyToJson(body))
+                          .then((value) {
+                        if (context.mounted) { Utils(context).stopLoading();}
+                        if (value != null && value is User) {
+                          _session.setSessionData(
+                              StudentLoginResponse(
+                                  user: value,
+                                  accessToken: _session.userToken
+                              )
+                          );
+                          AwesomeDialog(
+                              context: context,
+                              dismissOnTouchOutside: false,
+                              dismissOnBackKeyPress: false,
+                              dialogType: DialogType.success,
+                              headerAnimationLoop: false,
+                              animType: AnimType.bottomSlide,
+                              title: '¡Actualización exitosa!',
+                              desc:
+                              'Se ha editado sus datos correctamente.',
+                              buttonsTextStyle:
+                              const TextStyle(color: Colors.black),
+                              showCloseIcon: false,
+                              btnOkText: 'ACEPTAR',
+                              btnOkOnPress: () {
+                                //Navigator.of(context).pop(true);
+                                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                    builder: (context) => const Home()), (Route route) => false);
+                              }).show();
+                        }
+                      }).onError((error, stackTrace) {
+                        if (context.mounted) { Utils(context).stopLoading();}
+                        Utils(context).showErrorDialog(error.toString()).show();
+                      });
+                    }
+                  },
+                ),
+              ],
             ],
           ),
         ),
@@ -467,6 +511,9 @@ class _ProfileState extends State<Profile> {
               httpFile
           ).then((value) {
             Utils(context).stopLoading();
+            if (value != null && value.fileId != null) {
+              _session.fileId = value.fileId;
+            }
             AwesomeDialog(
                 context: context,
                 dismissOnTouchOutside: false,
@@ -523,18 +570,20 @@ class _ProfileState extends State<Profile> {
                       fontSize: 16.0,
                     ),
                   )),
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        listDescription.removeAt(index);
-                        listEXP.removeAt(index);
-                      });
-                    },
-                    child: const Icon(
-                      Icons.delete_rounded,
-                      color: Colors.red,
-                    ),
-                  )
+                  if (user == null) ... [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          listDescription.removeAt(index);
+                          listEXP.removeAt(index);
+                        });
+                      },
+                      child: const Icon(
+                        Icons.delete_rounded,
+                        color: Colors.red,
+                      ),
+                    )
+                  ],
                 ],
               ),
             ),

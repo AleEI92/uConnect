@@ -1,6 +1,7 @@
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/models/oferta_body.dart';
 import 'package:u_connect/models/skill_body.dart';
 import 'package:u_connect/screens/password_change_reset.dart';
@@ -16,6 +17,14 @@ import 'jobs_filter.dart';
 import 'login.dart';
 
 
+class FilterObj {
+  int? idCarrera;
+  String? jobType;
+  List<String>? skills;
+
+  FilterObj({required this.idCarrera, required this.jobType, required this.skills});
+}
+
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -30,8 +39,12 @@ class _HomeState extends State<Home> {
   late Future<dynamic> data;
   var _isLoading = true;
 
+  // SETEAMOS LOS FILTROS POR DEFAULT -> SE MUESTRA TRABAJO Y PASANTIA POR DEFAULT (Ambas)
+  var activeFilters = FilterObj(idCarrera: null, jobType: null, skills: null);
+
   List<OfertaBody> ofertasAll = [];
   List<Widget> widgets = [];
+  bool newDataFromFilter = false;
 
   @override
   void initState() {
@@ -115,10 +128,32 @@ class _HomeState extends State<Home> {
                     'Información',
                     style: TextStyle(fontSize: 14)
                 ),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  var snackBar = const SnackBar(content: Text('Próximamente...'));
-                  ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  await AwesomeDialog(
+                      context: context,
+                      autoDismiss: false,
+                      dismissOnBackKeyPress: false,
+                      onDismissCallback: (type) {},
+                      useRootNavigator: false,
+                      dialogType: DialogType.info,
+                      animType: AnimType.rightSlide,
+                      dismissOnTouchOutside: false,
+                      title: 'Información',
+                      desc: 'Programador: Alejandro Elías Insaurralde\n'
+                          'Backend: Manuel Martínez\n\n'
+                          'Contacto: uconnect.uca@gmail.com\n\n'
+                          'Versión: ${Constants.versionCode}',
+                      buttonsTextStyle: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      btnOkText: 'ACEPTAR',
+                      btnOkColor: Colors.cyan[400],
+                      btnOkOnPress: () {
+                        Navigator.of(context).pop();
+                      }).show();
                 },
               ),
               const Divider(thickness: 1.5),
@@ -159,7 +194,25 @@ class _HomeState extends State<Home> {
                   Navigator.of(context).push(
                       MaterialPageRoute(
                           builder: (BuildContext context) =>
-                          const JobsFilter()));
+                          JobsFilter(filters: activeFilters)))
+                      .then((value) async {
+                        if (value != null) {
+                          final newFilters = value as FilterObj;
+                          activeFilters.idCarrera = newFilters.idCarrera;
+                          activeFilters.jobType = newFilters.jobType;
+                          activeFilters.skills = newFilters.skills;
+                          /*print(activeFilters.idCarrera);
+                          print(activeFilters.jobType);
+                          print(activeFilters.skills);*/
+
+                          final newData = await getAllOfertas();
+                          newDataFromFilter = true;
+                          setState(() {
+                            ofertasAll.clear();
+                            ofertasAll.addAll(newData);
+                          });
+                        }
+                  });
                 },
               )
             ]
@@ -185,8 +238,12 @@ class _HomeState extends State<Home> {
                   }
                   // MOSTRAMOS FORMULARIOS
                   else if (snapshot.hasData) {
-                    ofertasAll.addAll(snapshot.data);
-                    return showList(snapshot.data);
+                    if (!newDataFromFilter) {
+                      ofertasAll.addAll(snapshot.data);
+                    }
+                    newDataFromFilter = false;
+
+                    return showList(ofertasAll);
                   }
                   else {
                     return Container();
@@ -253,6 +310,42 @@ class _HomeState extends State<Home> {
     );
   }
 
+  String setActiveFiltersText() {
+    String value = "";
+
+    if (activeFilters.idCarrera != null) {
+      value = value + getCarreraNameById(activeFilters.idCarrera!);
+    }
+
+    if (activeFilters.jobType != null) {
+      if (value.isEmpty) {
+        value = value + activeFilters.jobType!;
+      }
+      else {
+        value = "$value / ${activeFilters.jobType!}";
+      }
+    }
+
+    if (activeFilters.skills != null) {
+      for (var skill in activeFilters.skills!) {
+        if (value.isEmpty) {
+          value = value + skill;
+        }
+        else {
+          value = "$value / $skill";
+        }
+      }
+    }
+
+    if (value.isEmpty) {
+      value = "Todas las ofertas";
+    }
+    else {
+      value = "Filtros activos: $value";
+    }
+    return value.toUpperCase();
+  }
+
   Widget showList(List<OfertaBody> ofertas) {
     return Container(
       decoration: myAppBackground(),
@@ -262,94 +355,113 @@ class _HomeState extends State<Home> {
       child: Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: 16.0, vertical: 12),
-        child: ListView.builder(itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-            child: InkWell(
-              onTap: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (BuildContext context) =>
-                            JobDetail(offer: ofertasAll[index])));
-              },
-              child: Card(
-                shadowColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 8.0,
-                color: Colors.cyan[200],
-                child: SizedBox(
-                  height: 130,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 16),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // DESCRIPTION
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0, vertical: 4.0),
+        child: Column(
+          children: [
+            /*const SizedBox(
+              height: 4.0,
+            ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(setActiveFiltersText(),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              )),
+            ),
+            const SizedBox(
+              height: 4.0,
+            ),*/
+            Expanded(
+              child: ListView.builder(itemBuilder: (context, index) {
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (BuildContext context) =>
+                                  JobDetail(offer: ofertasAll[index])));
+                    },
+                    child: Card(
+                      shadowColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 8.0,
+                      color: Colors.cyan[200],
+                      child: SizedBox(
+                        height: 130,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16.0, vertical: 16),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  ofertas[index].careerName!,
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(
-                                  height: 4.0,
-                                ),
-                                Text(
-                                  ofertas[index].companyName!,
-                                  style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 14.0),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                /*const SizedBox(
-                                  height: 4.0,
-                                ),
-                                Text(
-                                  ofertas[index].description!,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),*/
-                                const SizedBox(
-                                  height: 16.0,
-                                ),
-                                Text('Fecha: '
-                                    '${ofertas[index].creationDate!.day}'
-                                    '-${ofertas[index].creationDate!.month}'
-                                    '-${ofertas[index].creationDate!.year}'),
-                                if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
-                                  const SizedBox(
-                                    height: 4.0,
+                                // DESCRIPTION
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0, vertical: 4.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${ofertas[index].careerName!} - ${ofertas[index].jobType!}",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(
+                                        height: 4.0,
+                                      ),
+                                      Text(
+                                        ofertas[index].companyName!,
+                                        style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 15.0),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(
+                                        height: 16.0,
+                                      ),
+                                      Text('Fecha: '
+                                          '${ofertas[index].creationDate!.day}'
+                                          '-${ofertas[index].creationDate!.month}'
+                                          '-${ofertas[index].creationDate!.year}'),
+                                      const SizedBox(
+                                        height: 4.0,
+                                      ),
+                                      if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
+                                        Text(
+                                          "Solicitudes: ${ofertas[index].users!.length}",
+                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ]
+                                      else ... [
+                                        const Text(
+                                          "Solicitudes: 0",
+                                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ]
+                                    ],
                                   ),
-                                  Text(
-                                    "Solicitudes: ${ofertas[index].users!.length}",
-                                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
+                                ),
                               ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              }, itemCount: ofertas.length),
             ),
-          );
-        }, itemCount: ofertas.length),
+          ],
+        ),
       ),
     );
   }
@@ -397,7 +509,11 @@ class _HomeState extends State<Home> {
   }
 
   Future<dynamic> getAllOfertas() async {
-    var response = await MyBaseClient().getAllOfertas(null, null, null);
+    var response = await MyBaseClient().getAllOfertas(
+        activeFilters.idCarrera,
+        activeFilters.jobType,
+        activeFilters.skills
+    );
     return response;
   }
 
@@ -490,6 +606,15 @@ class _HomeState extends State<Home> {
         ),
       ),
     );
+  }
+
+  String getCarreraNameById(int value) {
+    for (var i = 0; i < _session.allCarreras!.length; i++) {
+      if (value == _session.allCarreras![i].id) {
+        return _session.allCarreras![i].name;
+      }
+    }
+    return "";
   }
 
   int? getCareerID() {
