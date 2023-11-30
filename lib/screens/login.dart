@@ -200,6 +200,7 @@ class _LoginState extends State<Login> {
                                             prefs.setString("mail", mailControl.text.toString());
                                         });
 
+                                        Session.resetInstance();
                                         Session.getInstance().setSessionData(value);
 
                                         var allCarreras = await MyBaseClient().getCarreras()

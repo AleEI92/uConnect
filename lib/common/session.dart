@@ -36,6 +36,10 @@ class Session {
     return _myInstance!;
   }
 
+  static void resetInstance() {
+    _myInstance = null;
+  }
+
   void setSessionData(dynamic user) {
     if (user is StudentLoginResponse) {
       userEmail = user.user.email != null ? user.user.email! : "";
@@ -43,9 +47,7 @@ class Session {
       userID = user.user.id != null ? user.user.id! : -1;
       userPhoneNumber = user.user.phoneNumber != null ? user.user.phoneNumber! : "";
       userCareer = user.user.careerName != null ? user.user.careerName! : "";
-      if (userToken.isEmpty) {
-        userToken = user.accessToken;
-      }
+      userToken = user.accessToken;
       fileId = user.user.fileId;
       skills = user.user.skills;
       isStudent = true;
@@ -54,9 +56,7 @@ class Session {
       userEmail = (user as CompanyLoginResponse).company.email;
       userName = user.company.name;
       userID = user.company.id != null ? user.company.id! : -1;
-      if (userToken.isEmpty) {
-        userToken = user.accessToken;
-      }
+      userToken = user.accessToken;
       isStudent = false;
     }
   }

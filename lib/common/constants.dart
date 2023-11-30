@@ -7,7 +7,7 @@ class Constants {
   static const String baseURL = "$awsIP/uconnect/api";
 
   ////////////////////////////////////////////////////////////////////////
-  static const String disculpe = "Disculpe los inconvenientes.";
+  static const String disculpe = "Disculpe los inconvenientes";
   static const String versionCode = "1.1.0";
 
   // JMMG01@HOTMAIL.COM

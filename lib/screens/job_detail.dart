@@ -11,6 +11,7 @@ import '../models/generic_post_ok.dart';
 import '../models/oferta_body.dart';
 import 'package:http/http.dart' as http;
 
+import '../models/student_login_response.dart';
 import 'home.dart';
 
 
@@ -266,7 +267,37 @@ class _JobDetailState extends State<JobDetail> {
                           ),
                           onPressed: () async {
                             if (Session.getInstance().isStudent) {
-                              if (Session.getInstance().fileId == null) {
+                              if (offer.users != null) {
+                                User? user;
+                                for (var item in offer.users!) {
+                                  if (item.email == Session.getInstance().userEmail) {
+                                    user = item;
+                                    break;
+                                  }
+                                }
+                                if (user != null) {
+                                  AwesomeDialog(
+                                      context: context,
+                                      dismissOnTouchOutside: false,
+                                      dismissOnBackKeyPress: false,
+                                      dialogType: DialogType.error,
+                                      headerAnimationLoop: false,
+                                      animType: AnimType.bottomSlide,
+                                      title: 'Solicitud denegada',
+                                      desc:
+                                      'Ya ha aplicado a esta oferta',
+                                      buttonsTextStyle:
+                                      const TextStyle(color: Colors.black),
+                                      showCloseIcon: false,
+                                      btnOkText: 'ACEPTAR',
+                                      btnOkColor: Colors.cyan[400],
+                                      btnOkOnPress: () {
+                                        Navigator.of(context).pop(true);
+                                      }).show();
+                                  return;
+                                }
+                              }
+                              else if (Session.getInstance().fileId == null) {
                                 AwesomeDialog(
                                     context: context,
                                     dismissOnTouchOutside: false,
@@ -276,7 +307,7 @@ class _JobDetailState extends State<JobDetail> {
                                     animType: AnimType.bottomSlide,
                                     title: 'Solicitud denegada',
                                     desc:
-                                    'Debe cargar un CV para poder aplicar a una oferta.',
+                                    'Debe cargar su CV para poder aplicar a una oferta',
                                     buttonsTextStyle:
                                     const TextStyle(color: Colors.black),
                                     showCloseIcon: false,
