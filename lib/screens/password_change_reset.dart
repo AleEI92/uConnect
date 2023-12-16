@@ -4,6 +4,8 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/common/session.dart';
+import 'package:u_connect/custom_widgets/background_decor.dart';
+import 'package:u_connect/custom_widgets/background_decor_card.dart';
 import 'package:u_connect/models/change_pass_body.dart';
 import 'package:u_connect/models/generic_post_ok.dart';
 import 'package:u_connect/models/recover_pass_body.dart';
@@ -33,15 +35,11 @@ class PasswordChangeReset extends StatelessWidget {
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12)
       ),
-      elevation: 8,
+      elevation: 16.0,
       backgroundColor: Colors.transparent,
       child: Container(
         width: MediaQuery.of(context).size.width *(2/3),
-        decoration: BoxDecoration(
-          color: Colors.cyan[400],
-          shape: BoxShape.rectangle,
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-        ),
+        decoration: myCardBackground(),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -122,7 +120,7 @@ class PasswordChangeReset extends StatelessWidget {
                   ElevatedButton(
                     style: ButtonStyle(
                       minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                      backgroundColor: MaterialStateProperty.all(Colors.black45),
+                      backgroundColor: Constants.buttonColor,
                     ),
                     child: Text(
                       mensaje,
@@ -150,7 +148,7 @@ class PasswordChangeReset extends StatelessWidget {
                                 buttonsTextStyle:
                                 const TextStyle(color: Colors.black),
                                 showCloseIcon: false,
-                                btnOkText: 'ACEPTAR',
+                                btnOkText: Constants.aceptar,
                                 btnOkColor: Colors.cyan,
                                 btnOkOnPress: Utils(context).popDialog).show();
                           }).onError((error, stackTrace) {
@@ -170,7 +168,7 @@ class PasswordChangeReset extends StatelessWidget {
                                       buttonsTextStyle:
                                       const TextStyle(color: Colors.black),
                                       showCloseIcon: false,
-                                      btnOkText: 'ACEPTAR',
+                                      btnOkText: Constants.aceptar,
                                       btnOkColor: Colors.cyan,
                                       btnOkOnPress: Utils(context).popDialog).show();
                                 }).onError((error, stackTrace) {
@@ -202,7 +200,7 @@ class PasswordChangeReset extends StatelessWidget {
                               buttonsTextStyle:
                               const TextStyle(color: Colors.black),
                               showCloseIcon: false,
-                              btnOkText: 'ACEPTAR',
+                              btnOkText: Constants.aceptar,
                               btnOkColor: Colors.cyan,
                               btnOkOnPress: () {
                                 Utils(context).popDialog;

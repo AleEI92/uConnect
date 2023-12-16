@@ -3,6 +3,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/custom_widgets/background_decor_card.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/models/company_login_response.dart';
 import 'package:u_connect/models/editar_company_body.dart';
@@ -127,8 +128,257 @@ class _ProfileState extends State<Profile> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
-        elevation: 8.0,
-        color: Colors.cyan[200],
+        elevation: 16.0,
+        child: Container(
+          decoration: myCardBackground(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 16.0, vertical: 32),
+            child: Column(
+              children: [
+                // FULL NAME
+                TextFormField(
+                  controller: studentNameControl,
+                  readOnly: user != null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Debe insertar un nombre para el registro.';
+                    }
+                    return null;
+                  },
+                  keyboardType: TextInputType.text,
+                  style: const TextStyle(fontSize: 15.0),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.person_2_rounded),
+                      border: OutlineInputBorder(),
+                      labelText: 'Nombre completo',
+                      hintText: 'Ingrese nombre completo'),
+                ),
+                const SizedBox(
+                  height: 20.0,
+                ),
+                // USER EMAIL
+                TextFormField(
+                  controller: studentMailControl,
+                  readOnly: user != null,
+                  validator: (value) {
+                    return mailValidation(value);
+                  },
+                  keyboardType: TextInputType.text,
+                  style: const TextStyle(fontSize: 15.0),
+                  decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.email_rounded),
+                      border: OutlineInputBorder(),
+                      labelText: 'Correo',
+                      hintText: 'Ingrese correo válido'),
+                ),
+                const SizedBox(
+                  height: 20.0,
+                ),
+                // USER PHONE NUMBER
+                TextFormField(
+                  controller: studentPhoneControl,
+                  readOnly: user != null,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Debe insertar un número de celular.';
+                    }
+                    else if (!value.startsWith('099') &&
+                        !value.startsWith('098') &&
+                        !value.startsWith('097') &&
+                        !value.startsWith('096')) {
+                      return 'Formato de número de celular incorrecto.';
+                    }
+                    else if (value.length != 10) {
+                      return 'El campo debe tener 10 números exactos.';
+                    }
+                    return null;
+                  },
+                  maxLength: 10,
+                  keyboardType: TextInputType.number,
+                  style: const TextStyle(fontSize: 15.0),
+                  decoration: const InputDecoration(
+                      counterText: '',
+                      prefixIcon: Icon(Icons.phone_android_rounded),
+                      border: OutlineInputBorder(),
+                      labelText: 'Celular',
+                      hintText: 'Ingrese su número de celular'),
+                ),
+                const SizedBox(
+                  height: 20.0,
+                ),
+                DropdownButtonFormField<String>(
+                  value: carreras.firstWhere((element) => element.name == _selectedCarrera).name,
+                  validator: (value) {
+                    if (_selectedCarrera.isEmpty) {
+                      return ('Debe seleccionar una carrera.');
+                    }
+                    return null;
+                  },
+                  icon: const Icon(Icons.keyboard_arrow_down),
+                  items: carreras.map((carrera) {
+                    return DropdownMenuItem<String>(
+                      enabled: user == null,
+                      value: carrera.name,
+                      child: Text(carrera.name),
+                    );
+                  }).toList(),
+                  decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: 'Seleccione su carrera:'),
+                  onChanged: user == null ? (value) {
+                    _selectedCarrera = value.toString();
+                  } : null,
+                ),
+                const SizedBox(
+                  height: 20.0,
+                ),
+                if (user == null) ... [
+                  skillForm(),
+                  const SizedBox(
+                    height: 20.0,
+                  ),
+                ],
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: listDescription.length,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        index > 0
+                            ? loadSkill(
+                            index,
+                            listDescription[index].toString(),
+                            listEXP[index].toString())
+                            : const SizedBox()
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(
+                  height: 30.0,
+                ),
+                InkWell(
+                  child: const Icon(Icons.file_present_rounded, size: 56),
+                  onTap: () async {
+                    if (user != null) {
+                      // DOWNLOAD FILE FROM OFFER
+                      Utils(context).startLoading();
+                      var response = await MyBaseClient().getFile(user!.fileId!) as http.Response?;
+                      if (response != null && response.statusCode == 200) {
+                        if (context.mounted) {
+                          Utils(context).getFileFromBinaryAndOpen(response);
+                        }
+                      }
+                      if (context.mounted) {
+                        Utils(context).stopLoading();
+                      }
+                    }
+                    else {
+                      chooseFile(_session.userID, _session.isStudent);
+                    }
+                  },
+                ),
+                if (user != null) ... [
+                  const Text(
+                    "Descargar CV",
+                  ),
+                ]
+                else ... [
+                  const Text(
+                    "Actualizar CV (.pdf)",
+                  ),
+                  const SizedBox(
+                    height: 50.0,
+                  ),
+                  ElevatedButton(
+                    style: ButtonStyle(
+                      minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                      backgroundColor: Constants.buttonColor,
+                    ),
+                    child: const Text(
+                      'ACTUALIZAR',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () async {
+                      if (_studentFormKey.currentState!.validate()) {
+                        Utils(context).startLoading();
+                        final List<Skill> list = [];
+                        for (var i = 0; i < listDescription.length; i++) {
+                          list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
+                        }
+                        list.removeAt(0);
+
+                        var body = EditarUserBody(
+                            fullName: studentNameControl.value.text,
+                            email: studentMailControl.value.text,
+                            phoneNumber: studentPhoneControl.value.text,
+                            career: _selectedCarrera,
+                            skills: list
+                        );
+
+                        await MyBaseClient().putUpdateUser(
+                            _session.userID, editarUserBodyToJson(body))
+                            .then((value) {
+                          if (context.mounted) { Utils(context).stopLoading();}
+                          if (value != null && value is User) {
+                            _session.setSessionData(
+                                StudentLoginResponse(
+                                    user: value,
+                                    accessToken: _session.userToken
+                                )
+                            );
+                            AwesomeDialog(
+                                context: context,
+                                dismissOnTouchOutside: false,
+                                dismissOnBackKeyPress: false,
+                                dialogType: DialogType.success,
+                                headerAnimationLoop: false,
+                                animType: AnimType.bottomSlide,
+                                title: '¡Actualización exitosa!',
+                                desc:
+                                'Se ha editado sus datos correctamente.',
+                                buttonsTextStyle:
+                                const TextStyle(color: Colors.black),
+                                showCloseIcon: false,
+                                btnOkText: Constants.aceptar,
+                                btnOkOnPress: () {
+                                  //Navigator.of(context).pop(true);
+                                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                      builder: (context) => const Home()), (Route route) => false);
+                                }).show();
+                          }
+                        }).onError((error, stackTrace) {
+                          if (context.mounted) { Utils(context).stopLoading();}
+                          Utils(context).showErrorDialog(error.toString()).show();
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget companyForm() {
+    setInitialValues();
+
+    return Card(
+      shadowColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      elevation: 16.0,
+      child: Container(
+        decoration: myCardBackground(),
         child: Padding(
           padding: const EdgeInsets.symmetric(
               horizontal: 16.0, vertical: 32),
@@ -136,8 +386,7 @@ class _ProfileState extends State<Profile> {
             children: [
               // FULL NAME
               TextFormField(
-                controller: studentNameControl,
-                readOnly: user != null,
+                controller: companyNameControl,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Debe insertar un nombre para el registro.';
@@ -157,11 +406,7 @@ class _ProfileState extends State<Profile> {
               ),
               // USER EMAIL
               TextFormField(
-                controller: studentMailControl,
-                readOnly: user != null,
-                validator: (value) {
-                  return mailValidation(value);
-                },
+                controller: companyMailControl,
                 keyboardType: TextInputType.text,
                 style: const TextStyle(fontSize: 15.0),
                 decoration: const InputDecoration(
@@ -171,308 +416,68 @@ class _ProfileState extends State<Profile> {
                     hintText: 'Ingrese correo válido'),
               ),
               const SizedBox(
-                height: 20.0,
+                height: 50.0,
               ),
-              // USER PHONE NUMBER
-              TextFormField(
-                controller: studentPhoneControl,
-                readOnly: user != null,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Debe insertar un número de celular.';
-                  }
-                  else if (!value.startsWith('099') &&
-                      !value.startsWith('098') &&
-                      !value.startsWith('097') &&
-                      !value.startsWith('096')) {
-                    return 'Formato de número de celular incorrecto.';
-                  }
-                  else if (value.length != 10) {
-                    return 'El campo debe tener 10 números exactos.';
-                  }
-                  return null;
-                },
-                maxLength: 10,
-                keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 15.0),
-                decoration: const InputDecoration(
-                    counterText: '',
-                    prefixIcon: Icon(Icons.phone_android_rounded),
-                    border: OutlineInputBorder(),
-                    labelText: 'Celular',
-                    hintText: 'Ingrese su número de celular'),
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              DropdownButtonFormField<String>(
-                value: carreras.firstWhere((element) => element.name == _selectedCarrera).name,
-                validator: (value) {
-                  if (_selectedCarrera.isEmpty) {
-                    return ('Debe seleccionar una carrera.');
-                  }
-                  return null;
-                },
-                icon: const Icon(Icons.keyboard_arrow_down),
-                items: carreras.map((carrera) {
-                  return DropdownMenuItem<String>(
-                    enabled: user == null,
-                    value: carrera.name,
-                    child: Text(carrera.name),
-                  );
-                }).toList(),
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: 'Seleccione su carrera:'),
-                onChanged: user == null ? (value) {
-                  _selectedCarrera = value.toString();
-                } : null,
-              ),
-              const SizedBox(
-                height: 20.0,
-              ),
-              if (user == null) ... [
-                skillForm(),
-                const SizedBox(
-                  height: 20.0,
+              ElevatedButton(
+                style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                  backgroundColor: Constants.buttonColor,
                 ),
-              ],
-              ListView.builder(
-                shrinkWrap: true,
-                itemCount: listDescription.length,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      index > 0
-                          ? loadSkill(
-                          index,
-                          listDescription[index].toString(),
-                          listEXP[index].toString())
-                          : const SizedBox()
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(
-                height: 30.0,
-              ),
-              InkWell(
-                child: const Icon(Icons.file_present_rounded, size: 56),
-                onTap: () async {
-                  if (user != null) {
-                    // DOWNLOAD FILE FROM OFFER
+                child: const Text(
+                  'ACTUALIZAR',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () async {
+                  if (companyNameControl.value.text.isNotEmpty &&
+                      companyMailControl.value.text.isNotEmpty) {
                     Utils(context).startLoading();
-                    var response = await MyBaseClient().getFile(user!.fileId!) as http.Response?;
-                    if (response != null && response.statusCode == 200) {
-                      if (context.mounted) {
-                        Utils(context).getFileFromBinaryAndOpen(response);
+                    var body = EditarEmpresaBody(name: companyNameControl.value.text,
+                        email: companyMailControl.value.text);
+
+                    await MyBaseClient().putUpdateUser(
+                        _session.userID, editarEmpresaBodyToJson(body))
+                        .then((value) {
+                      if (context.mounted) { Utils(context).stopLoading();}
+                      if (value != null && value is EditarEmpresaBody) {
+                        _session.setSessionData(
+                            CompanyLoginResponse(
+                                company: Company(id: _session.userID,
+                                    email: value.email, name: value.name),
+                                accessToken: _session.userToken
+                            )
+                        );
+                        AwesomeDialog(
+                            context: context,
+                            dismissOnTouchOutside: false,
+                            dismissOnBackKeyPress: false,
+                            dialogType: DialogType.success,
+                            headerAnimationLoop: false,
+                            animType: AnimType.bottomSlide,
+                            title: '¡Actualización exitosa!',
+                            desc:
+                            'Se ha editado sus datos correctamente.',
+                            buttonsTextStyle:
+                            const TextStyle(color: Colors.black),
+                            showCloseIcon: false,
+                            btnOkText: Constants.aceptar,
+                            btnOkOnPress: () {
+                              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                                  builder: (context) => const Home()), (Route route) => false);
+                            }).show();
                       }
-                    }
-                    if (context.mounted) {
-                      Utils(context).stopLoading();
-                    }
-                  }
-                  else {
-                    chooseFile(_session.userID, _session.isStudent);
+                    }).onError((error, stackTrace) {
+                      if (context.mounted) { Utils(context).stopLoading();}
+                      Utils(context).showErrorDialog(error.toString()).show();
+                    });
                   }
                 },
               ),
-              if (user != null) ... [
-                const Text(
-                  "Descargar CV",
-                ),
-              ]
-              else ... [
-                const Text(
-                  "Actualizar CV (.pdf)",
-                ),
-                const SizedBox(
-                  height: 50.0,
-                ),
-                ElevatedButton(
-                  style: ButtonStyle(
-                    minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                    backgroundColor: MaterialStateProperty.all(Colors.black45),
-                  ),
-                  child: const Text(
-                    'ACTUALIZAR',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  onPressed: () async {
-                    if (_studentFormKey.currentState!.validate()) {
-                      Utils(context).startLoading();
-                      final List<Skill> list = [];
-                      for (var i = 0; i < listDescription.length; i++) {
-                        list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
-                      }
-                      list.removeAt(0);
-
-                      var body = EditarUserBody(
-                          fullName: studentNameControl.value.text,
-                          email: studentMailControl.value.text,
-                          phoneNumber: studentPhoneControl.value.text,
-                          career: _selectedCarrera,
-                          skills: list
-                      );
-
-                      await MyBaseClient().putUpdateUser(
-                          _session.userID, editarUserBodyToJson(body))
-                          .then((value) {
-                        if (context.mounted) { Utils(context).stopLoading();}
-                        if (value != null && value is User) {
-                          _session.setSessionData(
-                              StudentLoginResponse(
-                                  user: value,
-                                  accessToken: _session.userToken
-                              )
-                          );
-                          AwesomeDialog(
-                              context: context,
-                              dismissOnTouchOutside: false,
-                              dismissOnBackKeyPress: false,
-                              dialogType: DialogType.success,
-                              headerAnimationLoop: false,
-                              animType: AnimType.bottomSlide,
-                              title: '¡Actualización exitosa!',
-                              desc:
-                              'Se ha editado sus datos correctamente.',
-                              buttonsTextStyle:
-                              const TextStyle(color: Colors.black),
-                              showCloseIcon: false,
-                              btnOkText: 'ACEPTAR',
-                              btnOkOnPress: () {
-                                //Navigator.of(context).pop(true);
-                                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                                    builder: (context) => const Home()), (Route route) => false);
-                              }).show();
-                        }
-                      }).onError((error, stackTrace) {
-                        if (context.mounted) { Utils(context).stopLoading();}
-                        Utils(context).showErrorDialog(error.toString()).show();
-                      });
-                    }
-                  },
-                ),
-              ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget companyForm() {
-    setInitialValues();
-
-    return Card(
-      shadowColor: Colors.black,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      elevation: 8.0,
-      color: Colors.cyan[200],
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 16.0, vertical: 32),
-        child: Column(
-          children: [
-            // FULL NAME
-            TextFormField(
-              controller: companyNameControl,
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Debe insertar un nombre para el registro.';
-                }
-                return null;
-              },
-              keyboardType: TextInputType.text,
-              style: const TextStyle(fontSize: 15.0),
-              decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.person_2_rounded),
-                  border: OutlineInputBorder(),
-                  labelText: 'Nombre completo',
-                  hintText: 'Ingrese nombre completo'),
-            ),
-            const SizedBox(
-              height: 20.0,
-            ),
-            // USER EMAIL
-            TextFormField(
-              controller: companyMailControl,
-              keyboardType: TextInputType.text,
-              style: const TextStyle(fontSize: 15.0),
-              decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.email_rounded),
-                  border: OutlineInputBorder(),
-                  labelText: 'Correo',
-                  hintText: 'Ingrese correo válido'),
-            ),
-            const SizedBox(
-              height: 50.0,
-            ),
-            ElevatedButton(
-              style: ButtonStyle(
-                minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                backgroundColor: MaterialStateProperty.all(Colors.black45),
-              ),
-              child: const Text(
-                'ACTUALIZAR',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              onPressed: () async {
-                if (companyNameControl.value.text.isNotEmpty &&
-                    companyMailControl.value.text.isNotEmpty) {
-                  Utils(context).startLoading();
-                  var body = EditarEmpresaBody(name: companyNameControl.value.text,
-                      email: companyMailControl.value.text);
-
-                  await MyBaseClient().putUpdateUser(
-                      _session.userID, editarEmpresaBodyToJson(body))
-                      .then((value) {
-                    if (context.mounted) { Utils(context).stopLoading();}
-                    if (value != null && value is EditarEmpresaBody) {
-                      _session.setSessionData(
-                          CompanyLoginResponse(
-                              company: Company(id: _session.userID,
-                                  email: value.email, name: value.name),
-                              accessToken: _session.userToken
-                          )
-                      );
-                      AwesomeDialog(
-                          context: context,
-                          dismissOnTouchOutside: false,
-                          dismissOnBackKeyPress: false,
-                          dialogType: DialogType.success,
-                          headerAnimationLoop: false,
-                          animType: AnimType.bottomSlide,
-                          title: '¡Actualización exitosa!',
-                          desc:
-                          'Se ha editado sus datos correctamente.',
-                          buttonsTextStyle:
-                          const TextStyle(color: Colors.black),
-                          showCloseIcon: false,
-                          btnOkText: 'ACEPTAR',
-                          btnOkOnPress: () {
-                            Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-                                builder: (context) => const Home()), (Route route) => false);
-                          }).show();
-                    }
-                  }).onError((error, stackTrace) {
-                    if (context.mounted) { Utils(context).stopLoading();}
-                    Utils(context).showErrorDialog(error.toString()).show();
-                  });
-                }
-              },
-            ),
-          ],
         ),
       ),
     );
@@ -527,7 +532,7 @@ class _ProfileState extends State<Profile> {
                 buttonsTextStyle:
                 const TextStyle(color: Colors.black),
                 showCloseIcon: false,
-                btnOkText: 'ACEPTAR',
+                btnOkText: Constants.aceptar,
                 btnOkOnPress: () {}).show();
           }).onError((error, stackTrace) {
             Utils(context).stopLoading();

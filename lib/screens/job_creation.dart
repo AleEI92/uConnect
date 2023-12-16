@@ -5,6 +5,7 @@ import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:u_connect/common/constants.dart';
 import 'package:u_connect/common/session.dart';
+import 'package:u_connect/custom_widgets/background_decor_card.dart';
 import 'package:u_connect/models/oferta_crear_body.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
@@ -13,13 +14,15 @@ import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
 import '../http/services.dart';
 import '../models/carreras_response.dart';
+import '../models/generic_post_ok.dart';
 import '../models/oferta_body.dart';
 import '../models/skill_body.dart';
 import 'package:http_parser/http_parser.dart';
 
 
 class JobCreation extends StatefulWidget {
-  const JobCreation({super.key});
+  final OfertaBody? offer;
+  const JobCreation({Key? key, this.offer}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _JobCreationState();
@@ -40,9 +43,27 @@ class _JobCreationState extends State<JobCreation> {
   final List<String> listEXP = [""];
   String _selectedExperience = '';
 
+  late OfertaBody? offer;
+
   @override
   void initState() {
     super.initState();
+    offer = widget.offer;
+
+    if (offer != null) {
+      descriptionControl.text = offer!.description!;
+      _selectedCarrera = offer!.careerName!;
+      _selectedCiudad = offer!.cityName!;
+      _selectedModalidad = offer!.jobType!;
+
+      if (offer!.skills != null) {
+        for (var skill in offer!.skills!) {
+          listDescription.add(skill.skillName);
+          listEXP.add(skill.experience);
+        }
+      }
+    }
+
     loadCiudadesYCarreras();
   }
 
@@ -50,7 +71,7 @@ class _JobCreationState extends State<JobCreation> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Crear Oferta'),
+        title: offer == null ? const Text('Crear Oferta') : const Text('Editar Oferta'),
       ),
       body: SafeArea(
         child: showForm(),
@@ -76,180 +97,226 @@ class _JobCreationState extends State<JobCreation> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              elevation: 8.0,
-              color: Colors.cyan[200],
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 32),
-                child: Column(
-                  children: [
-                    // DESCRIPTION
-                    TextFormField(
-                      controller: descriptionControl,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Debe insertar una descripción.';
-                        }
-                        return null;
-                      },
-                      keyboardType: TextInputType.text,
-                      style: const TextStyle(fontSize: 15.0),
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Descripción',
-                          hintText: 'Ingrese una descripción'),
-                    ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    // MODALIDAD
-                    DropdownButtonFormField<String>(
-                      validator: (value) {
-                        if (_selectedModalidad.isEmpty) {
-                          return ('Debe seleccionar una modalidad.');
-                        }
-                        return null;
-                      },
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: Constants.listaModalidad.map((carrera) {
-                        return DropdownMenuItem<String>(
-                          value: carrera.name,
-                          child: Text(carrera.name),
-                        );
-                      }).toList(),
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Modalidad',
-                          hintText: 'Seleccione modalidad de trabajo:'),
-                      onChanged: (value) {
-                        _selectedModalidad = value.toString();
-                        print("MODALIDAD: $_selectedModalidad");
-                      },
-                    ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    // CARRERA
-                    DropdownButtonFormField<String>(
-                      validator: (value) {
-                        if (_selectedCarrera.isEmpty) {
-                          return ('Debe seleccionar una carrera.');
-                        }
-                        return null;
-                      },
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: _listCarreras.map((carrera) {
-                        return DropdownMenuItem<String>(
-                          value: carrera.name,
-                          child: Text(carrera.name),
-                        );
-                      }).toList(),
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Carrera',
-                          hintText: 'Seleccione una carrera:'),
-                      onChanged: (value) {
-                        _selectedCarrera = value.toString();
-                      },
-                    ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    // CIUDAD
-                    DropdownButtonFormField<String>(
-                      validator: (value) {
-                        if (_selectedCiudad.isEmpty) {
-                          return ('Debe seleccionar una ciudad.');
-                        }
-                        return null;
-                      },
-                      icon: const Icon(Icons.keyboard_arrow_down),
-                      items: _listCiudades.map((carrera) {
-                        return DropdownMenuItem<String>(
-                          value: carrera.name,
-                          child: Text(carrera.name),
-                        );
-                      }).toList(),
-                      decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Ciudad',
-                          hintText: 'Seleccione su ciudad:'),
-                      onChanged: (value) {
-                        _selectedCiudad = value.toString();
-                      },
-                    ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    skillForm(),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: listDescription.length,
-                      itemBuilder: (context, index) {
-                        return Column(
-                          children: [
-                            index > 0
-                                ? loadSkill(
-                                    index,
-                                    listDescription[index].toString(),
-                                    listEXP[index].toString())
-                                : const SizedBox()
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(
-                      height: 50.0,
-                    ),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                        backgroundColor: MaterialStateProperty.all(Colors.black45),
+              elevation: 16.0,
+              child: Container(
+                decoration: myCardBackground(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 32),
+                  child: Column(
+                    children: [
+                      // DESCRIPTION
+                      TextFormField(
+                        //initialValue: offer == null ? "" : offer!.description,
+                        controller: descriptionControl,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Debe insertar una descripción.';
+                          }
+                          return null;
+                        },
+                        keyboardType: TextInputType.text,
+                        style: const TextStyle(fontSize: 15.0),
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Descripción',
+                            hintText: 'Ingrese una descripción'),
                       ),
-                      child: const Text(
-                        'CREAR OFERTA',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      // MODALIDAD
+                      DropdownButtonFormField<String>(
+                        value: offer == null ? null : Constants.listaModalidad
+                            .firstWhere((element) => element.name == offer!.jobType).name,
+                        validator: (value) {
+                          if (_selectedModalidad.isEmpty) {
+                            return ('Debe seleccionar una modalidad.');
+                          }
+                          return null;
+                        },
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        items: Constants.listaModalidad.map((carrera) {
+                          return DropdownMenuItem<String>(
+                            value: carrera.name,
+                            child: Text(carrera.name),
+                          );
+                        }).toList(),
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Modalidad',
+                            hintText: 'Seleccione modalidad de trabajo:'),
+                        onChanged: (value) {
+                          _selectedModalidad = value.toString();
+                          print("MODALIDAD: $_selectedModalidad");
+                        },
+                      ),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      // CARRERA
+                      DropdownButtonFormField<String>(
+                        value: offer == null ? null : Session.getInstance().allCarreras!
+                            .firstWhere((element) => element.name == offer!.careerName).name,
+                        validator: (value) {
+                          if (_selectedCarrera.isEmpty) {
+                            return ('Debe seleccionar una carrera.');
+                          }
+                          return null;
+                        },
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        items: _listCarreras.map((carrera) {
+                          return DropdownMenuItem<String>(
+                            value: carrera.name,
+                            child: Text(carrera.name),
+                          );
+                        }).toList(),
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Carrera',
+                            hintText: 'Seleccione una carrera:'),
+                        onChanged: (value) {
+                          _selectedCarrera = value.toString();
+                        },
+                      ),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      // CIUDAD
+                      DropdownButtonFormField<String>(
+                        value: offer == null ? null : Session.getInstance().allCiudades!
+                            .firstWhere((element) => element.name == offer!.cityName).name,
+                        validator: (value) {
+                          if (_selectedCiudad.isEmpty) {
+                            return ('Debe seleccionar una ciudad.');
+                          }
+                          return null;
+                        },
+                        icon: const Icon(Icons.keyboard_arrow_down),
+                        items: _listCiudades.map((carrera) {
+                          return DropdownMenuItem<String>(
+                            value: carrera.name,
+                            child: Text(carrera.name),
+                          );
+                        }).toList(),
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder(),
+                            labelText: 'Ciudad',
+                            hintText: 'Seleccione su ciudad:'),
+                        onChanged: (value) {
+                          _selectedCiudad = value.toString();
+                        },
+                      ),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      skillForm(),
+                      const SizedBox(
+                        height: 20.0,
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: listDescription.length,
+                        itemBuilder: (context, index) {
+                          return Column(
+                            children: [
+                              index > 0
+                                  ? loadSkill(
+                                  index,
+                                  listDescription[index].toString(),
+                                  listEXP[index].toString())
+                                  : const SizedBox()
+                            ],
+                          );
+                        },
+                      ),
+                      const SizedBox(
+                        height: 50.0,
+                      ),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                          backgroundColor: Constants.buttonColor,
                         ),
+                        child: offer == null ? const Text(
+                          'CREAR OFERTA',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ) : const Text(
+                          'EDITAR OFERTA',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        onPressed: () async {
+                          Utils(context).startLoading();
+                          if (offer == null) {
+                            callOfferFunction().then((value) {
+                              Utils(context).stopLoading();
+                              AwesomeDialog(
+                                  context: context,
+                                  dismissOnTouchOutside: false,
+                                  dismissOnBackKeyPress: false,
+                                  dialogType: DialogType.success,
+                                  headerAnimationLoop: false,
+                                  animType: AnimType.bottomSlide,
+                                  title: '¡Oferta creada exitosamente!',
+                                  desc:
+                                  'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(imagen o pdf) a la oferta creada?',
+                                  buttonsTextStyle:
+                                  const TextStyle(color: Colors.black),
+                                  showCloseIcon: false,
+                                  btnCancelText: Constants.cancelar,
+                                  btnCancelOnPress: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  btnOkText: Constants.aceptar,
+                                  btnOkOnPress: () {
+                                    chooseFile(value.id);
+                                  }).show();
+                            }).onError((error, stackTrace) {
+                              Utils(context).stopLoading();
+                              Utils(context).showErrorDialog(error.toString()).show();
+                            });
+                          }
+                          else {
+                            callEditJobFunction().then((value) {
+                              Utils(context).stopLoading();
+                              AwesomeDialog(
+                                  context: context,
+                                  dismissOnTouchOutside: false,
+                                  dismissOnBackKeyPress: false,
+                                  dialogType: DialogType.success,
+                                  headerAnimationLoop: false,
+                                  animType: AnimType.bottomSlide,
+                                  title: '¡Oferta modificada exitosamente!',
+                                  desc:
+                                  'Se ha editado la oferta con éxito.',
+                                  buttonsTextStyle:
+                                  const TextStyle(color: Colors.black),
+                                  showCloseIcon: false,
+                                  btnCancelText: Constants.cancelar,
+                                  btnCancelOnPress: () {
+                                    Navigator.of(context).pop(true);
+                                  },
+                                  btnOkText: Constants.aceptar,
+                                  btnOkOnPress: () {
+                                    //chooseFile(value.id);
+                                  }).show();
+                            }).onError((error, stackTrace) {
+                              Utils(context).stopLoading();
+                              Utils(context).showErrorDialog(error.toString()).show();
+                            });
+                          }
+                        },
                       ),
-                      onPressed: () async {
-                        Utils(context).startLoading();
-                        callOfferFunction().then((value) {
-                          Utils(context).stopLoading();
-                          AwesomeDialog(
-                              context: context,
-                              dismissOnTouchOutside: false,
-                              dismissOnBackKeyPress: false,
-                              dialogType: DialogType.success,
-                              headerAnimationLoop: false,
-                              animType: AnimType.bottomSlide,
-                              title: '¡Oferta creada exitosamente!',
-                              desc:
-                              'Se ha creado la oferta con éxito.\n\n¿Desea adjuntar un archivo(imagen o pdf) a la oferta creada?',
-                              buttonsTextStyle:
-                              const TextStyle(color: Colors.black),
-                              showCloseIcon: false,
-                              btnCancelText: 'VOLVER',
-                              btnCancelOnPress: () {
-                                Navigator.of(context).pop(true);
-                              },
-                              btnOkText: 'CARGAR',
-                              btnOkOnPress: () {
-                                chooseFile(value.id);
-                              }).show();
-                        }).onError((error, stackTrace) {
-                          Utils(context).stopLoading();
-                          Utils(context).showErrorDialog(error.toString()).show();
-                        });
-                      },
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -261,49 +328,49 @@ class _JobCreationState extends State<JobCreation> {
 
   Widget loadSkill(int index, String descrip, String exp) {
     return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.cyan[200],
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black54.withOpacity(0.7),
-                spreadRadius: 1,
-                blurRadius: 2,
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 8.0, vertical: 8.0),
-            child: Row(
-              children: [
-                Expanded(child: Text(
-                    "$descrip\nExperiencia: $exp años.",
-                  style: TextStyle(
-                    color: Colors.black54.withOpacity(0.7),
-                    fontSize: 16.0,
-                  ),
-                )),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      listDescription.removeAt(index);
-                      listEXP.removeAt(index);
-                    });
-                  },
-                  child: const Icon(
-                    Icons.delete_rounded,
-                    color: Colors.red,
-                  ),
-                )
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.cyan[200],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black54.withOpacity(0.7),
+                  spreadRadius: 1,
+                  blurRadius: 2,
+                ),
               ],
             ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(child: Text(
+                    "$descrip\nExperiencia: $exp años.",
+                    style: TextStyle(
+                      color: Colors.black54.withOpacity(0.7),
+                      fontSize: 16.0,
+                    ),
+                  )),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        listDescription.removeAt(index);
+                        listEXP.removeAt(index);
+                      });
+                    },
+                    child: const Icon(
+                      Icons.delete_rounded,
+                      color: Colors.red,
+                    ),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
-        const SizedBox(height: 8)
-      ]
+          const SizedBox(height: 8)
+        ]
     );
   }
 
@@ -323,7 +390,7 @@ class _JobCreationState extends State<JobCreation> {
               style: const TextStyle(fontSize: 15.0),
               decoration: const InputDecoration(
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 23.0, horizontal: 12.0),
+                  EdgeInsets.symmetric(vertical: 23.0, horizontal: 12.0),
                   border: OutlineInputBorder(),
                   labelText: 'Habilidad',
                   hintText: 'Ingrese una habilidad'),
@@ -474,6 +541,29 @@ class _JobCreationState extends State<JobCreation> {
     _listCiudades = Session.getInstance().allCiudades!;
   }
 
+  Future<GenericOkPost?> callEditJobFunction() async {
+    final List<Skill> list = [];
+    for (var i = 0; i < listDescription.length; i++) {
+      list.add(Skill(skillName: listDescription[i], experience: listEXP[i]));
+    }
+    list.removeAt(0);
+
+    var body = CrearOfertaBody(
+      description: descriptionControl.text.toString().trim(),
+      jobType: _selectedModalidad,
+      career: _selectedCarrera,
+      city: _selectedCiudad,
+      skills: list,
+    );
+
+    return await putEditOffer(offer!.id!, ofertaToJson(body));
+  }
+
+  Future<GenericOkPost?> putEditOffer(int offerID, Object body) async {
+    var response = await MyBaseClient().putEditJob(offerID, body);
+    return response;
+  }
+
   Future<OfertaBody> callOfferFunction() async {
     final List<Skill> list = [];
     for (var i = 0; i < listDescription.length; i++) {
@@ -549,7 +639,7 @@ class _JobCreationState extends State<JobCreation> {
                   buttonsTextStyle:
                   const TextStyle(color: Colors.black),
                   showCloseIcon: false,
-                  btnOkText: 'ACEPTAR',
+                  btnOkText: Constants.aceptar,
                   btnOkOnPress: () {
                     Navigator.of(context).pop(true);
                   }).show();

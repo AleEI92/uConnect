@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:u_connect/models/oferta_body.dart';
 import 'package:u_connect/screens/job_detail.dart';
 
+import '../common/constants.dart';
 import '../common/session.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
@@ -72,7 +73,7 @@ class _ViewJobsState extends State<ViewJobs> {
       width: double.maxFinite,
       height: double.maxFinite,
       constraints: const BoxConstraints.expand(),
-      child: Padding(
+      child: ofertas.isNotEmpty ? Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: 16.0, vertical: 12),
         child: ListView.builder(itemBuilder: (context, index) {
@@ -102,9 +103,9 @@ class _ViewJobsState extends State<ViewJobs> {
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
-                    btnOkText: 'SI',
+                    btnOkText: Constants.aceptar,
                     btnOkColor: Colors.cyan[400],
-                    btnCancelText: 'NO',
+                    btnCancelText: Constants.cancelar,
                     btnCancelColor: Colors.grey[400],
                     btnOkOnPress: () async {
                       Navigator.of(context).pop();
@@ -135,36 +136,56 @@ class _ViewJobsState extends State<ViewJobs> {
                       horizontal: 16.0, vertical: 12),
                   child: Row(
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Tipo: ${ofertas[index].jobType}'),
-                          Text('Carrera: ${ofertas[index].careerName}'),
-                          Text('Fecha: '
-                              '${ofertas[index].creationDate!.day}'
-                              '-${ofertas[index].creationDate!.month}'
-                              '-${ofertas[index].creationDate!.year}'),
-                          const SizedBox(height: 8),
-                          if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              "Solicitudes: ${ofertas[index].users!.length}",
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                              "${ofertas[index].careerName!} - ${ofertas[index].jobType!}",
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ]
-                          else ... [
-                            const Text(
-                              "Solicitudes: 0",
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                              maxLines: 1,
+                            const SizedBox(
+                              height: 4.0,
+                            ),
+                            Text(
+                              "Descripción: ${ofertas[index].description!}",
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          ]
-                        ],
+                            const SizedBox(height: 12),
+                            Text('Fecha: '
+                                '${ofertas[index].creationDate!.day}'
+                                '-${ofertas[index].creationDate!.month}'
+                                '-${ofertas[index].creationDate!.year}'),
+                            const SizedBox(
+                              height: 4.0,
+                            ),
+                            if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
+                              Text(
+                                "Solicitudes: ${ofertas[index].users!.length}",
+                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ]
+                            else ... [
+                              const Text(
+                                "Solicitudes: 0",
+                                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ]
+                          ],
+                        ),
                       ),
-                      const Spacer(),
-                      const Icon(Icons.arrow_forward_ios_rounded),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 16,
+                        child: const Icon(Icons.arrow_forward_ios_rounded),
+                      ),
                     ],
                   ),
                 ),
@@ -172,6 +193,15 @@ class _ViewJobsState extends State<ViewJobs> {
             ),
           );
         }, itemCount: ofertas.length),
+      ) : const Align(
+        alignment: Alignment.center,
+          child: Text(
+            "Aún no ha creado ninguna oferta.",
+            style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold
+            ),
+          ),
       ),
     );
   }

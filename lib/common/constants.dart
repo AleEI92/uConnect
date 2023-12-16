@@ -1,14 +1,19 @@
 
+import 'package:flutter/material.dart';
+
 import '../models/carreras_response.dart';
 
 class Constants {
-  //static const String localIP = "http://192.168.100.29";
-  static const String awsIP = "http://34.196.114.158";
-  static const String baseURL = "$awsIP/uconnect/api";
+  static const String localIP = "http://192.168.0.12";
+  //static const String awsIP = "http://34.196.114.158";
+  static const String baseURL = "$localIP/uconnect/api";
 
   ////////////////////////////////////////////////////////////////////////
   static const String disculpe = "Disculpe los inconvenientes";
   static const String versionCode = "1.1.0";
+  static const String aceptar = "ACEPTAR";
+  static const String cancelar = "CANCELAR";
+  static final MaterialStateProperty<Color> buttonColor = MaterialStateProperty.all(Colors.blueGrey.shade500);
 
   // JMMG01@HOTMAIL.COM
 

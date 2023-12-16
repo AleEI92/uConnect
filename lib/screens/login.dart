@@ -8,6 +8,7 @@ import 'package:u_connect/screens/register.dart';
 import '../common/constants.dart';
 import '../common/utils.dart';
 import '../custom_widgets/background_decor.dart';
+import '../custom_widgets/background_decor_card.dart';
 import '../http/services.dart';
 import 'home.dart';
 
@@ -70,156 +71,163 @@ class _LoginState extends State<Login> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        elevation: 8.0,
-                        color: Colors.cyan[200],
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16.0, vertical: 32),
-                          child: Column(
-                            children: [
-                              // USER MAIL
-                              TextFormField(
-                                controller: mailControl,
-                                validator: (value) {
-                                  if (value == null || !EmailValidator.validate(value)) {
-                                    return 'Ingrese un correo válido.';
-                                  }
-                                  return null;
-                                },
-                                keyboardType: TextInputType.text,
-                                maxLines: 1,
-                                style: const TextStyle(
-                                  fontSize: 15.0,
+                        elevation: 16.0,
+                        child: Container(
+                          decoration: myCardBackground(),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0, vertical: 32),
+                            child: Column(
+                              children: [
+                                // USER MAIL
+                                TextFormField(
+                                  controller: mailControl,
+                                  validator: (value) {
+                                    if (value == null || !EmailValidator.validate(value)) {
+                                      return 'Ingrese un correo válido.';
+                                    }
+                                    return null;
+                                  },
+                                  keyboardType: TextInputType.text,
+                                  maxLines: 1,
+                                  style: const TextStyle(
+                                    fontSize: 15.0,
+                                  ),
+                                  decoration: const InputDecoration(
+                                      prefixIcon:Icon(Icons.email_rounded),
+                                      border: OutlineInputBorder(),
+                                      labelText: 'Correo',
+                                      hintText: 'Ingrese correo válido'),
                                 ),
-                                decoration: const InputDecoration(
-                                    prefixIcon:Icon(Icons.email_rounded),
-                                    border: OutlineInputBorder(),
-                                    labelText: 'Correo',
-                                    hintText: 'Ingrese correo válido'),
-                              ),
-                              const SizedBox(
-                                height: 20.0,
-                              ),
-                              // USER PASSWORD
-                              TextFormField(
-                                controller: passControl,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Ingrese su contraseña.';
-                                  }
-                                  return null;
-                                },
-                                maxLines: 1,
-                                maxLength: 16,
-                                keyboardType: TextInputType.visiblePassword,
-                                obscureText: _passHide,
-                                style: const TextStyle(
-                                  fontSize: 15.0,
+                                const SizedBox(
+                                  height: 20.0,
                                 ),
-                                decoration: InputDecoration(
-                                    counterText: '',
-                                    prefixIcon: const Icon(Icons.key_rounded),
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        _passHide
-                                            ? Icons.visibility_rounded
-                                            : Icons.visibility_off_rounded,
+                                // USER PASSWORD
+                                TextFormField(
+                                  controller: passControl,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Ingrese su contraseña.';
+                                    }
+                                    return null;
+                                  },
+                                  maxLines: 1,
+                                  maxLength: 16,
+                                  keyboardType: TextInputType.visiblePassword,
+                                  obscureText: _passHide,
+                                  style: const TextStyle(
+                                    fontSize: 15.0,
+                                  ),
+                                  decoration: InputDecoration(
+                                      counterText: '',
+                                      prefixIcon: const Icon(Icons.key_rounded),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _passHide
+                                              ? Icons.visibility_rounded
+                                              : Icons.visibility_off_rounded,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _passHide = !_passHide;
+                                          });
+                                        },
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _passHide = !_passHide;
-                                        });
-                                      },
-                                    ),
-                                    border: const OutlineInputBorder(),
-                                    labelText: 'Contraseña',
-                                ),
-                              ),
-                              const SizedBox(
-                                height: 12.0,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  SizedBox(
-                                    width: 24.0,
-                                    height: 24.0,
-                                    child: Checkbox(
-                                      value: rememberMe,
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          rememberMe = value!;
-                                          if (rememberMe == false) {
-                                            prefs.remove("mail");
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ), //Checkbox
-                                  const SizedBox(
-                                    width: 8.0,
-                                  ),
-                                  const Text('Recordarme'),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 40.0,
-                              ),
-                              ElevatedButton(
-                                style: ButtonStyle(
-                                  minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                                  backgroundColor: MaterialStateProperty.all(Colors.black45),
-                                ),
-                                child: const Text(
-                                  'INGRESAR',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                      border: const OutlineInputBorder(),
+                                      labelText: 'Contraseña',
                                   ),
                                 ),
-                                onPressed: () async {
-                                  if (_loginFormKey.currentState!.validate()) {
-                                    var loginBody = {
-                                      "username":
-                                          mailControl.text.toString().trim(),
-                                      "password":
-                                          passControl.text.toString().trim()
-                                    };
+                                const SizedBox(
+                                  height: 12.0,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      width: 24.0,
+                                      height: 24.0,
+                                      child: Checkbox(
+                                        value: rememberMe,
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            rememberMe = value!;
+                                            if (rememberMe == false) {
+                                              prefs.remove("mail");
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    ), //Checkbox
+                                    const SizedBox(
+                                      width: 8.0,
+                                    ),
+                                    const Text('Recordarme'),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 40.0,
+                                ),
+                                ElevatedButton(
+                                  style: ButtonStyle(
+                                    minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                                    backgroundColor: Constants.buttonColor,
+                                  ),
+                                  child: const Text(
+                                    'INGRESAR',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  onPressed: () async {
+                                    if (_loginFormKey.currentState!.validate()) {
+                                      var loginBody = {
+                                        "username":
+                                            mailControl.text.toString().trim(),
+                                        "password":
+                                            passControl.text.toString().trim()
+                                      };
 
-                                    Utils(context).startLoading();
-                                    await MyBaseClient()
-                                        .postLogin(loginBody)
-                                        .onError((error, stackTrace) {
-                                      Utils(context).stopLoading();
-                                      Utils(context).showErrorDialog(error.toString()).show();
-                                    }).then((value) async {
-                                      //Utils(context).stopLoading();
-                                      if (value != null) {
-                                        setState(() {
-                                            prefs.setString("mail", mailControl.text.toString());
-                                        });
+                                      Utils(context).startLoading();
+                                      await MyBaseClient()
+                                          .postLogin(loginBody)
+                                          .onError((error, stackTrace) {
+                                        Utils(context).stopLoading();
+                                        Utils(context).showErrorDialog(error.toString()).show();
+                                      }).then((value) async {
+                                        //Utils(context).stopLoading();
+                                        if (value != null) {
+                                          setState(() {
+                                              prefs.setString("mail", mailControl.text.toString());
+                                          });
 
-                                        Session.resetInstance();
-                                        Session.getInstance().setSessionData(value);
+                                          Session.resetInstance();
+                                          Session.getInstance().setSessionData(value);
 
-                                        var allCarreras = await MyBaseClient().getCarreras()
-                                            .onError((error, stackTrace) {
-                                          return [];
-                                        });
-                                        if (allCarreras.isNotEmpty) {
-                                          Session.getInstance().setCarrerasData(allCarreras);
-                                          var allCiudades = await MyBaseClient().getCiudades()
+                                          var allCarreras = await MyBaseClient().getCarreras()
                                               .onError((error, stackTrace) {
                                             return [];
                                           });
-                                          if (allCiudades.isNotEmpty) {
-                                            Session.getInstance().setCiudadesData(allCiudades);
-                                            if (!mounted) return;
-                                            Navigator.of(context).pushReplacement(
-                                                MaterialPageRoute(
-                                                    builder: (BuildContext context) =>
-                                                    const Home()));
+                                          if (allCarreras.isNotEmpty) {
+                                            Session.getInstance().setCarrerasData(allCarreras);
+                                            var allCiudades = await MyBaseClient().getCiudades()
+                                                .onError((error, stackTrace) {
+                                              return [];
+                                            });
+                                            if (allCiudades.isNotEmpty) {
+                                              Session.getInstance().setCiudadesData(allCiudades);
+                                              if (!mounted) return;
+                                              Navigator.of(context).pushReplacement(
+                                                  MaterialPageRoute(
+                                                      builder: (BuildContext context) =>
+                                                      const Home()));
+                                            }
+                                            else {
+                                              if (!mounted) return;
+                                              Utils(context).stopLoading();
+                                              Utils(context).showErrorDialog(Constants.disculpe).show();
+                                            }
                                           }
                                           else {
                                             if (!mounted) return;
@@ -227,64 +235,59 @@ class _LoginState extends State<Login> {
                                             Utils(context).showErrorDialog(Constants.disculpe).show();
                                           }
                                         }
-                                        else {
-                                          if (!mounted) return;
-                                          Utils(context).stopLoading();
-                                          Utils(context).showErrorDialog(Constants.disculpe).show();
-                                        }
-                                      }
-                                      /////////////////////////////////////
-                                    });
-                                  }
-                                },
-                              ),
-                              TextButton(
-                                child: const Text(
-                                  '¿Ha olvidado su contraseña?',
-                                  style: TextStyle(
-                                    decoration: TextDecoration.underline,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
+                                        /////////////////////////////////////
+                                      });
+                                    }
+                                  },
                                 ),
-                                onPressed: () {
-                                  _recoverPassword();
-                                },
-                              ),
-                              const SizedBox(
-                                height: 24.0,
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    '¿No tienes una cuenta?',
+                                TextButton(
+                                  child: const Text(
+                                    '¿Ha olvidado su contraseña?',
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      decoration: TextDecoration.underline,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
                                     ),
                                   ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                              builder: (BuildContext context) =>
-                                              const Register()));
-                                    },
-                                    child: const Text(
-                                      'Regístrate!',
+                                  onPressed: () {
+                                    _recoverPassword();
+                                  },
+                                ),
+                                const SizedBox(
+                                  height: 24.0,
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    const Text(
+                                      '¿No tienes una cuenta?',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black,
-                                        decoration: TextDecoration.underline,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                                builder: (BuildContext context) =>
+                                                const Register()));
+                                      },
+                                      child: const Text(
+                                        'Regístrate!',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.black,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

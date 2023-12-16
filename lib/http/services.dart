@@ -33,6 +33,7 @@ abstract class BaseClient {
   Future postApplyToOffer(int idOferta);
   Future getUserByMail(String mail);
   Future deleteJob(int id);
+  Future putEditJob(int id, Object body);
 }
 
 class MyBaseClient extends BaseClient {
@@ -318,6 +319,19 @@ class MyBaseClient extends BaseClient {
     try{
       provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
       final response = await provider.delete("/job/$id/");
+      String json = _myUT8JsonParser(response.bodyBytes);
+      return genericOkPostFromJson(json);
+    }
+    catch(e) {
+      throw Exception(e.toString());
+    }
+  }
+
+  @override
+  Future<GenericOkPost> putEditJob(int id, Object body) async {
+    try{
+      provider.baseHeaders['Authorization'] =  bearer + Session.getInstance().userToken;
+      final response = await provider.put("/job/$id/", body);
       String json = _myUT8JsonParser(response.bodyBytes);
       return genericOkPostFromJson(json);
     }

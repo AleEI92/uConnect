@@ -1,9 +1,11 @@
 
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:u_connect/custom_widgets/background_decor_card.dart';
 import 'package:u_connect/models/carreras_response.dart';
 import 'package:u_connect/screens/home.dart';
 
+import '../common/constants.dart';
 import '../common/session.dart';
 import '../custom_widgets/background_decor.dart';
 
@@ -85,9 +87,9 @@ class _JobsFilterState extends State<JobsFilter> {
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
                   ),
-                  btnOkText: 'SI',
+                  btnOkText: Constants.aceptar,
                   btnOkColor: Colors.cyan[400],
-                  btnCancelText: 'NO',
+                  btnCancelText: Constants.cancelar,
                   btnCancelColor: Colors.grey[400],
                   btnOkOnPress: () {
                     Navigator.of(context).pop();
@@ -117,127 +119,129 @@ class _JobsFilterState extends State<JobsFilter> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 8.0,
-                  color: Colors.cyan[200],
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 32),
-                    child: Column(
-                      children: [
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text("Por carrera", style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),),
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        DropdownButtonFormField<String>(
-                          value: listaCarreras.firstWhere((element) => element.name == _selectedCarrera).name,
-                          validator: (value) {
-                            if (_selectedCarrera.isEmpty) {
-                              return ('Debe seleccionar una carrera.');
-                            }
-                            return null;
-                          },
-                          icon: const Icon(Icons.keyboard_arrow_down),
-                          items: listaCarreras.map((carrera) {
-                            return DropdownMenuItem<String>(
-                              value: carrera.name,
-                              child: Text(carrera.name),
-                            );
-                          }).toList(),
-                          decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: "Carrera",
-                              hintText: 'Seleccione su carrera:'),
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedCarrera = value.toString();
-                              _selectedCarreraId = getCareerID(_selectedCarrera);
-                            });
-                          },
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Por modalidad", style: TextStyle(
+                  elevation: 16.0,
+                  child: Container(
+                    decoration: myCardBackground(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 32),
+                      child: Column(
+                        children: [
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Por carrera", style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),),
-                            for (int i=0; i<modalidades.length; i++)
-                              RadioListTile(
-                                contentPadding: const EdgeInsets.only(left: 0),
-                                title: Text(modalidades[i]),
-                                value: modalidades[i],
-                                groupValue: currentModalidad,
-                                onChanged: (value) {
-                                  setState(() {
-                                    currentModalidad = value.toString();
-                                  });
-                                },
-                              ),
-                          ],
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        const Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text("Por habilidad", style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),),
-                        ),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        skillForm(),
-                        const SizedBox(
-                          height: 20.0,
-                        ),
-                        ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: listSkillDescription.length,
-                          itemBuilder: (context, index) {
-                            return Column(
-                              children: [
-                                index > 0
-                                    ? loadSkill(index,
-                                    listSkillDescription[index].toString())
-                                    : const SizedBox()
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          height: 50.0,
-                        ),
-                        ElevatedButton(
-                          style: ButtonStyle(
-                            minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                            backgroundColor: MaterialStateProperty.all(Colors.black45),
                           ),
-                          child: const Text(
-                            'APLICAR',
-                            style: TextStyle(
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          DropdownButtonFormField<String>(
+                            value: listaCarreras.firstWhere((element) => element.name == _selectedCarrera).name,
+                            validator: (value) {
+                              if (_selectedCarrera.isEmpty) {
+                                return ('Debe seleccionar una carrera.');
+                              }
+                              return null;
+                            },
+                            icon: const Icon(Icons.keyboard_arrow_down),
+                            items: listaCarreras.map((carrera) {
+                              return DropdownMenuItem<String>(
+                                value: carrera.name,
+                                child: Text(carrera.name),
+                              );
+                            }).toList(),
+                            decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                                labelText: "Carrera",
+                                hintText: 'Seleccione su carrera:'),
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCarrera = value.toString();
+                                _selectedCarreraId = getCareerID(_selectedCarrera);
+                              });
+                            },
+                          ),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Por modalidad", style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),),
+                              for (int i=0; i<modalidades.length; i++)
+                                RadioListTile(
+                                  contentPadding: const EdgeInsets.only(left: 0),
+                                  title: Text(modalidades[i]),
+                                  value: modalidades[i],
+                                  groupValue: currentModalidad,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      currentModalidad = value.toString();
+                                    });
+                                  },
+                                ),
+                            ],
+                          ),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text("Por habilidad", style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                            ),),
                           ),
-                          onPressed: () {
-                            saveFilters();
-                            Navigator.of(context).pop(activeFilters);
-                          },
-                        ),
-                      ],
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          skillForm(),
+                          const SizedBox(
+                            height: 20.0,
+                          ),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: listSkillDescription.length,
+                            itemBuilder: (context, index) {
+                              return Column(
+                                children: [
+                                  index > 0
+                                      ? loadSkill(index,
+                                      listSkillDescription[index].toString())
+                                      : const SizedBox()
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(
+                            height: 50.0,
+                          ),
+                          ElevatedButton(
+                            style: ButtonStyle(
+                              minimumSize: MaterialStateProperty.all(const Size(200, 45)),
+                              backgroundColor: Constants.buttonColor,
+                            ),
+                            child: const Text(
+                              'APLICAR',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            onPressed: () {
+                              saveFilters();
+                              Navigator.of(context).pop(activeFilters);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

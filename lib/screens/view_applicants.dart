@@ -86,7 +86,7 @@ class _ViewApplicantsState extends State<ViewApplicants> {
                               fontSize: 16,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
                           Text('Carrera: ${users[index].career}',
                             style: const TextStyle(
                               fontSize: 16,

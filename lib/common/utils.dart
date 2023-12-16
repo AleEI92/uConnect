@@ -11,6 +11,8 @@ import '../models/dialog_body.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
+import 'constants.dart';
+
 class Utils {
 
   late BuildContext context;
@@ -56,7 +58,7 @@ class Utils {
         type: DialogType.error,
         title: 'Oops.. Algo ha ocurrido',
         desc: desc,
-        btnOkText: 'ACEPTAR',
+        btnOkText: Constants.aceptar,
         btnOkFunction: Utils(context).popDialog,
       ),
     );

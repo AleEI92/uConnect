@@ -15,7 +15,7 @@ class CrearOfertaBody {
   String jobType;
   String career;
   String city;
-  int companyId;
+  int? companyId;
   String? file;
   List<Skill> skills;
 
@@ -24,7 +24,7 @@ class CrearOfertaBody {
     required this.jobType,
     required this.career,
     required this.city,
-    required this.companyId,
+    this.companyId,
     this.file,
     required this.skills,
   });

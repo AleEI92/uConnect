@@ -149,7 +149,7 @@ class _HomeState extends State<Home> {
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
-                      btnOkText: 'ACEPTAR',
+                      btnOkText: Constants.aceptar,
                       btnOkColor: Colors.cyan[400],
                       btnOkOnPress: () {
                         Navigator.of(context).pop();
@@ -262,7 +262,7 @@ class _HomeState extends State<Home> {
                 ElevatedButton(
                   style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                    backgroundColor: MaterialStateProperty.all(Colors.black45),
+                    backgroundColor: Constants.buttonColor,
                   ),
                   child: const Text(
                     'VER MIS OFERTAS',
@@ -285,7 +285,7 @@ class _HomeState extends State<Home> {
                 ElevatedButton(
                   style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(const Size(200, 45)),
-                    backgroundColor: MaterialStateProperty.all(Colors.black45),
+                    backgroundColor: Constants.buttonColor,
                   ),
                   child: const Text(
                     'CREAR OFERTA',
@@ -352,7 +352,7 @@ class _HomeState extends State<Home> {
       width: double.maxFinite,
       height: double.maxFinite,
       constraints: const BoxConstraints.expand(),
-      child: Padding(
+      child: ofertas.isNotEmpty ? Padding(
         padding: const EdgeInsets.symmetric(
             horizontal: 16.0, vertical: 12),
         child: Column(
@@ -389,69 +389,66 @@ class _HomeState extends State<Home> {
                       elevation: 8.0,
                       color: Colors.cyan[200],
                       child: SizedBox(
-                        height: 130,
+                        height: 136,
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16.0, vertical: 16),
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // DESCRIPTION
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0, vertical: 4.0),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // DESCRIPTION
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0, vertical: 4.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${ofertas[index].careerName!} - ${ofertas[index].jobType!}",
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(
+                                      height: 4.0,
+                                    ),
+                                    Text(
+                                      ofertas[index].companyName!,
+                                      style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 15.0),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(
+                                      height: 16.0,
+                                    ),
+                                    Text('Fecha: '
+                                        '${ofertas[index].creationDate!.day}'
+                                        '-${ofertas[index].creationDate!.month}'
+                                        '-${ofertas[index].creationDate!.year}'),
+                                    const SizedBox(
+                                      height: 4.0,
+                                    ),
+                                    if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
                                       Text(
-                                        "${ofertas[index].careerName!} - ${ofertas[index].jobType!}",
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),
+                                        "Solicitudes: ${ofertas[index].users!.length}",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(
-                                        height: 4.0,
-                                      ),
-                                      Text(
-                                        ofertas[index].companyName!,
-                                        style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 15.0),
+                                    ]
+                                    else ... [
+                                      const Text(
+                                        "Solicitudes: 0",
+                                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                      const SizedBox(
-                                        height: 16.0,
-                                      ),
-                                      Text('Fecha: '
-                                          '${ofertas[index].creationDate!.day}'
-                                          '-${ofertas[index].creationDate!.month}'
-                                          '-${ofertas[index].creationDate!.year}'),
-                                      const SizedBox(
-                                        height: 4.0,
-                                      ),
-                                      if (ofertas[index].users != null && ofertas[index].users!.isNotEmpty) ... [
-                                        Text(
-                                          "Solicitudes: ${ofertas[index].users!.length}",
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ]
-                                      else ... [
-                                        const Text(
-                                          "Solicitudes: 0",
-                                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ]
-                                    ],
-                                  ),
+                                    ]
+                                  ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -461,6 +458,15 @@ class _HomeState extends State<Home> {
               }, itemCount: ofertas.length),
             ),
           ],
+        ),
+      ) : const Align(
+        alignment: Alignment.center,
+        child: Text(
+          "No existen ofertas disponibles.",
+          style: TextStyle(
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold
+          ),
         ),
       ),
     );
@@ -483,9 +489,9 @@ class _HomeState extends State<Home> {
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
-        btnOkText: 'SI',
+        btnOkText: Constants.aceptar,
         btnOkColor: Colors.cyan[400],
-        btnCancelText: 'NO',
+        btnCancelText: Constants.cancelar,
         btnCancelColor: Colors.grey[400],
         btnOkOnPress: () {
           Navigator.of(context).pop();
